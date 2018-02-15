@@ -1,0 +1,147 @@
+<!doctype html>
+<html>
+<head>
+<title>Computer Organization (CSC 252) Spring 2018</title>
+
+<link href="https://fonts.googleapis.com/css?family=Lato:300,700|Roboto+Condensed" rel="stylesheet">
+<link rel="stylesheet" type="text/css" href="../css/main.css">
+
+</head>
+<body>
+
+<div class="main_container">
+
+<div class="topbar">
+  <div class="topbar_left"><a href="../index.html">CSC 252</a></div>
+  <div class="topbar_left"><a href="../index.html">Home</a></div>
+  <div class="topbar_left"><a href="../schedule.html">Schedule</a></div>
+  <div class="topbar_left"><a href="../syllabus.html">Syllabus</a></div>
+  <div class="topbar_left"><a href="https://learn.rochester.edu/">Blackboard</a></div>
+</div>
+
+
+<div class="content_container">
+<div class="home_container">
+
+<h2>Level 4: Mesopotamia (10 pts Extra Credit)</h2>
+<p>
+  If you have completed the first four levels, you have earned 55
+  points (full credit).&nbsp; You
+  have mastered the principles of the runtime stack operation, and you have
+  gained firsthand experience with buffer overflow attacks.&nbsp; We consider this a
+  satisfactory mastery of the material.&nbsp; You are welcome to stop right now.&nbsp;
+</p>
+<p>
+  The next level is to conquer Mesopotamia. It is for those who want to push themselves beyond our baseline
+  expectations for the course, and who want to face a challenge in designing
+  buffer overflow attacks that arises in real life.&nbsp; This part of the assignment
+  only counts 10 points, even though it requires a fair amount of work to do, so
+  don’t do it just for the points.&nbsp;
+</p>
+<p>
+  From one run to another, especially by different users, the exact stack
+  positions used by a given procedure will vary.&nbsp; One reason for this variation
+  is that the values of all environment variables are placed near the base of
+  the stack when a program starts executing.&nbsp; Environment variables are stored as
+  strings, requiring different amounts of storage depending on their values.&nbsp;
+  Thus, the stack space allocated for a given user depends on the settings of
+  his or her environment variables.&nbsp; Stack positions also differ when running a
+  program under <code>gdb</code>, since <code>gdb</code> uses stack space for
+  some of its own state.&nbsp;
+</p>
+<p>
+  In the code that calls <code>getbuf</code>, we have incorporated features that
+  stabilize the stack, so that the position of <code>getbuf</code>’s stack frame
+  will be consistent between runs.&nbsp; This made it possible for you to write an
+  exploit string knowing the exact starting address of <code>buf</code> and the
+  exact saved value of <code>%ebp</code>.&nbsp; If you tried to use such an exploit on
+  a normal program, you would find that it works some times, but it causes
+  segmentation faults at other times.&nbsp; Hence the name
+  “dynamite”—an explosive
+  developed by Alfred Nobel that contains stabilizing elements to make it less
+  prone to unexpected explosions.&nbsp;
+</p>
+<p>
+  For this level, we have gone the opposite direction, making the stack
+  positions even less stable than they normally are.&nbsp; Hence the name
+  “nitroglycerin”—an explosive that is notoriously unstable.&nbsp;
+</p>
+<p>
+  When you run <code>bufbomb</code> with the command line flag
+  “-n,” it will run in “Nitro” mode.&nbsp; Rather than
+  calling the function <code>getbuf</code>, the
+  program calls a slightly different function <code>getbufn</code>:
+</p>
+<pre>  int getbufn()
+  {
+      char buf[KABOOM_BUFFER_SIZE];
+      Gets(buf);
+      return 1;
+  }
+</pre>
+<p>
+  This function is similar to <code>getbuf</code>, except that it has a buffer
+  of 512 characters.&nbsp; You will need this additional space to create a reliable
+  exploit.&nbsp; The code that calls <code>getbufn</code> first allocates a random amount of storage
+  on the stack (using library function <code>alloca</code>) that ranges between
+  0 and 255 bytes.&nbsp; Thus, if you were to sample the value of <code>%ebp</code>
+  during two successive executions of <code>getbufn</code>, you would find they
+  differ by as much as [&#8722;127, 127] bytes.&nbsp;
+</p>
+<p>
+  In addition, when run in Nitro mode, <code>bufbomb</code> requires you to
+  supply your string 5 times, and it will execute <code>getbufn</code> 5 times,
+  each with a different stack offset.&nbsp; Your exploit string must make it return
+  your cookie each of these times.&nbsp;
+</p>
+<p>
+  Your task is identical to the task for the Dynamite level.&nbsp; Once again, your job
+  for this level is to supply an exploit string that will cause
+  <code>getbufn</code> to return your cookie back to test, rather than the value
+  1.&nbsp; You can see in the code for <code>test</code> that this will cause the program to go
+  “KABOOM!”&nbsp; Your exploit code should set your cookie as the return value,
+  restore any corrupted state, push the correct return location on the stack, and
+  execute a <code>ret</code> instruction to really return to
+  <code>test</code>.&nbsp;
+
+
+</p><p>
+  <b>Some Advice</b>:
+  </p><ul>
+    <li>
+      You can use the program <code>hex2raw</code> to send multiple copies
+      of your exploit string.&nbsp; If you have a single copy in the file
+      <i>exploit.txt</i>, then you can use the following command:
+      <pre>    unix&gt; <i>cat exploit.txt</i> | <i>hex2raw -n</i> | <i>bufbomb -n -u bovik</i></pre>
+      You must use the same string for all 5 executions of
+  <code>getbufn</code>.&nbsp;
+      Otherwise it will fail the testing code used by our grading server.&nbsp;
+    </li>
+    <li>
+      The trick is to make use of the <code>nop</code> instruction.&nbsp; It is
+      encoded with a single byte (code <code>0x90</code>).&nbsp; You can place a long
+      sequence of these at the beginning of your exploit code so that your code
+      will work correctly if the initial jump lands anywhere within the sequence.&nbsp;
+    </li>
+    <li>
+      You will need to restore the saved value of <code>%ebp</code> in a way that
+      is insensitive to variations in stack positions.&nbsp;
+      </li>
+  </ul>
+<p></p>
+
+  <hr>
+</div>  <!-- end of home_container -->
+
+<div class="footer">
+University of Rochester, Department of Computer Science
+</div>
+
+
+</div>  <!-- end of content_container (defined in header.php) -->
+</div>  <!-- end main_container (defined in header.php) -->
+
+
+</body>
+</html>
+
