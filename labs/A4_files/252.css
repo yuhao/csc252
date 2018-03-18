@@ -1,0 +1,16 @@
+body {
+    background-color: #e0ffff}
+#navbar {
+    position: absolute;
+    left: 10;
+    width: 150;
+    font-size: 12pt;
+    font-family: 'Helvetica Bold', Charcoal, 'Arial Black', sans-serif}
+#navbar a:link {
+    color: black;
+    text-decoration: none}
+#navbar a:visited {
+    color: black;
+    text-decoration: none}
+#navbar a:hover {
+    text-decoration: underline}
