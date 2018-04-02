@@ -1,0 +1,564 @@
+<!doctype html>
+<html>
+<head>
+<title>Computer Organization (CSC 252) Spring 2018</title>
+
+<link href="https://fonts.googleapis.com/css?family=Lato:300,700|Roboto+Condensed" rel="stylesheet">
+<link rel="stylesheet" type="text/css" href="../css/main.css">
+
+</head>
+<body>
+
+<div class="main_container">
+
+<div class="topbar">
+  <div class="topbar_left"><a href="../index.html">CSC 252</a></div>
+  <div class="topbar_left"><a href="../index.html">Home</a></div>
+  <div class="topbar_left"><a href="../schedule.html">Schedule</a></div>
+  <div class="topbar_left"><a href="../syllabus.html">Syllabus</a></div>
+  <div class="topbar_left"><a href="https://learn.rochester.edu/">Blackboard</a></div>
+</div>
+
+
+<div class="content_container">
+<div class="home_container">
+
+  <div class="sub_title">Assignment 6: Unix Shell</div>
+
+  <h2>Introduction</h2>
+  <p>
+  The purpose of this assignment is to become more familiar with the
+  concepts of process control and signaling.&nbsp; You’ll do this by
+  writing a simple Unix shell program that supports job control.&nbsp;
+  </p>
+  
+  <h2>Logistics</h2>
+  <p>
+  As usual, you may work in a group of up to two people in solving the
+  problems for this assignment.&nbsp; Any clarifications and revisions to
+  the assignment will be posted to the <a href="http://my.rochester.edu/">Blackboard</a> discussion forum.&nbsp;
+  </p>
+  
+  <h2>DUE DATES:</h2>
+  <p> For the "trivia" assignment:&nbsp; 12:00pm, Thursday, April, 6<br>
+  For the main assignment:&nbsp; 11:59pm, Monday, April 16.&nbsp;</p>
+
+  <h2>Hand Out Instructions</h2>
+  <p>
+  Copy the file <code>/u/cs252/labs18/shlab/shlab-handout.tar</code> to the
+  protected directory in which you plan to do your work.&nbsp; Then do the
+  following:&nbsp;
+  </p><ul>
+  <li>
+  Type the command <code>tar xvf shell-handout.tar</code> to expand the tarfile.&nbsp;
+  </li>
+  <li>
+  Type the command <code>make</code> to compile and link some test routines.&nbsp;
+  </li>
+  <li>
+  Type your team member names and CSUG IDs in the header comment at the top of
+  <code>tsh.c</code>.&nbsp;
+  </li>
+  </ul>
+  <p></p>
+  <p>
+  Looking at the <code>tsh.c</code> (tiny shell) file, you will see that
+  it contains a functional skeleton of a simple Unix shell.&nbsp; To help
+  you get started, we have already implemented the less interesting
+  functions.&nbsp; Your assignment is to complete the remaining empty
+  functions.&nbsp; As a sanity check for you, we’ve listed the
+  approximate number of lines of code for each of these functions in
+  our reference solution (which includes lots of comments).&nbsp;
+  </p><ul>
+  <li>
+  <code>eval</code>:&nbsp; Main routine that parses and interprets the command
+  line.&nbsp;
+  [80 lines]
+  </li>
+  <li>
+  <code>builtin_cmd</code>:&nbsp; Recognizes and interprets the built-in
+  commands <code>quit</code>, <code>fg</code>, <code>bg</code>, and
+  <code>jobs</code>.&nbsp;
+  [30 lines]
+  </li>
+  <li>
+  <code>do_bgfg</code>:&nbsp; Implements the <code>bg</code> and <code>fg</code>
+  built-in commands.&nbsp; [50 lines]
+  </li>
+  <li>
+  <code>waitfg</code>:&nbsp; Waits for a foreground job to complete.&nbsp; [25 lines]
+  </li>
+  <li>
+  <code>sigchld_handler</code>:&nbsp; Catches SIGCHILD signals.&nbsp; [75 lines]
+  </li>
+  <li>
+  <code>sigint_handler</code>:&nbsp; Catches SIGINT (<i>ctrl</i>-<code>C</code>)
+  signals.&nbsp;
+  [20 lines]
+  </li>
+  <li>
+  <code>sigtstp_handler</code>:&nbsp; Catches SIGTSTP
+  (<i>ctrl</i>-<code>Z</code>) signals.&nbsp;
+  [20 lines]
+  </li>
+  </ul>
+  <p></p>
+  <p>
+  Each time you modify your <code>tsh.c</code> file, type
+  <code>make</code> to recompile it.&nbsp; To run your shell, type
+  <code>./tsh</code> to the command line:&nbsp;
+  </p><pre>    unix&gt; ./tsh
+      tsh&gt; <code>[type commands to your shell here]</code>
+  </pre>
+  If you want to exit your shell, but have not implemented the appropriate
+  commands, you can type <i>ctrl</i>-<code>D</code> or (more harshly)
+  <i>ctrl</i>-<code>C</code> to kill your shell.&nbsp;
+  <p></p>
+  
+  <h2>General Overview of Unix Shells</h2>
+  <p>
+  A <i>shell</i> is an interactive command-line interpreter that runs
+  programs on behalf of the user.&nbsp; A shell repeatedly prints a
+  prompt, waits for a <i>command line</i> on <i>stdin</i>, and then
+  carries out some action, as directed by the contents of the command
+  line.&nbsp;
+  </p>
+  <p>
+  The command line is a sequence of ASCII text words delimited by
+  whitespace.&nbsp; The first word in the command line is either the name
+  of a built-in command or the pathname of an executable file.&nbsp; The
+  remaining words are command-line arguments.&nbsp; If the first word is a
+  built-in command, the shell immediately executes the command in the
+  current process.&nbsp; Otherwise, the word is assumed to be the pathname
+  of an executable program.&nbsp; In this case, the shell forks a child
+  process, then loads and runs the program in the context of the
+  child.&nbsp; The child processes created as a result of interpreting a
+  single command line are known collectively as a <i>job</i>.&nbsp; In
+  general, a job can consist of multiple child processes connected by Unix
+  pipes.&nbsp;
+  </p>
+  <p>
+  If the command line ends with an ampersand &amp;, then the job runs in
+  the <i>background</i>, which means that the shell does not wait for the
+  job to terminate before printing the prompt and awaiting the next
+  command line.&nbsp; Otherwise, the job runs in the <i>foreground</i>,
+  which means that the shell waits for the job to terminate before
+  prompting for the next command line.&nbsp; Thus, at any point in time,
+  at most one job can be running in the foreground.&nbsp; However, an
+  arbitrary number of jobs can run in the background.&nbsp;
+  </p>
+  <p>
+  For example, typing the command line
+  </p><pre>    tsh&gt; <code>jobs</code>
+  </pre>
+  causes the shell to execute the built-in <code>jobs</code>
+  command.&nbsp; Typing the command line
+  <pre>    tsh&gt; <code>/bin/ls -l -d</code>
+  </pre>
+  runs the <code>ls</code> program in the foreground.&nbsp; By convention,
+  the shell ensures that when <code>ls</code> begins executing its main
+  routine:&nbsp;
+  <pre>    int main(int argc, char *argv[])
+  </pre>
+  the <code>argc</code> and <code>argv</code> arguments have the following
+  values:&nbsp;
+  <ul>
+  <li><code>argc == 3</code></li>
+  <li><code>argv[0] == "/bin/ls"</code></li>
+  <li><code>argv[1] == "-l"</code></li>
+  <li><code>argv[2] == "-d"</code></li>
+  </ul>
+  Alternatively, typing the command line
+  <pre>    tsh&gt; <code>/bin/ls -l -d &amp;</code>
+  </pre>
+  runs the <code>ls</code> program in the background.&nbsp;
+  <p></p>
+  <p>
+  Unix shells support the notion of <i>job control</i>, which allows users
+  to move jobs back and forth between background and foreground, and to
+  change the process state (running, stopped, or terminated) of the
+  processes in a job.&nbsp; Typing <i>ctrl</i>-<code>C</code> causes a
+  SIGINT signal to
+  be delivered to each process in the foreground job.&nbsp; The default
+  action for SIGINT is to terminate the process.&nbsp; Similarly, typing
+  <i>ctrl</i>-<code>Z</code> causes a SIGTSTP signal to be delivered to
+  each process in
+  the foreground job.&nbsp; The default action for SIGTSTP is to place a
+  process in the stopped state, where it remains until it is awakened by
+  the receipt of a SIGCONT signal.&nbsp; Unix shells also provide various
+  built-in commands that support job control.&nbsp; For example:&nbsp;
+  </p><ul>
+  <li>
+  <code>jobs</code>:&nbsp; List the running and stopped background jobs.&nbsp;
+  </li>
+  <li>
+  <code>bg &lt;job&gt;</code>:&nbsp; Change a stopped background job to a running
+  background job.&nbsp;
+  </li>
+  <li>
+  <code>fg &lt;job&gt;</code>:&nbsp; Change a stopped or running background job to a
+  running foreground job.&nbsp;
+  </li>
+  <li>
+  <code>kill &lt;job&gt;</code>:&nbsp; Terminate a job.&nbsp;
+  </li>
+  </ul>
+  <p></p>
+  <h2>The <code>tsh</code> Specification</h2>
+  <p>
+  Your <code>tsh</code> shell should have the following features:&nbsp;
+  </p><ul>
+  <li>The prompt should be the string “<code>tsh&gt; </code>”.</li>
+  <li>
+  The command line typed by the user should consist of a <i>name</i> and
+  zero or more arguments, all separated by one or more spaces.&nbsp; If
+  <i>name</i> is a built-in command, then <code>tsh</code> should handle
+  it immediately and wait for the next command line.&nbsp; Otherwise,
+  <code>tsh</code> should assume that <i>name</i> is the path of an
+  executable file, which it loads and runs in the context of an initial
+  child process.&nbsp; (In this context, the term <i>job</i> refers to this
+  initial child process.)&nbsp;
+  </li>
+  <li>
+  <code>tsh</code> need not support pipes (<code>|</code>) or I/O redirection
+  (<code>&lt;</code> and <code>&gt;</code>), but you are welcome to
+  implement these for extra credit.&nbsp;
+  </li>
+  <li>
+  Typing <i>ctrl</i>-<code>C</code> (<i>ctrl</i>-<code>Z</code>) should
+  cause a SIGINT (SIGTSTP)
+  signal to be sent to the current foreground job, as well as any
+  descendents of that job (e.g., any child processes that it
+  forked).&nbsp; If there is no foreground job (i.e., <code>tsh</code> is
+  in the foreground), then the signal should
+  have no effect.&nbsp;
+  </li>
+  <li>
+  If the command line ends with an ampersand, then <code>tsh</code> should
+  run the job in the background.&nbsp; Otherwise, it should run the job in
+  the foreground.&nbsp;
+  </li>
+  <li>
+  Each job can be identified by either a process ID (PID) or a job ID
+  (JID), which is a small positive integer assigned by
+  <code>tsh</code>.&nbsp; JIDs should be denoted on the command line by
+  the prefix “%”.&nbsp; For example, “ <i>%5</i>”
+  denotes JID 5, and “<i>5</i>” denotes PID 5.&nbsp; (We have
+  provided you with all of the routines you need for manipulating the job
+  list.)&nbsp;
+  </li>
+  <li>
+  <code>tsh</code> should support the following built-in commands:&nbsp;
+  <ul>
+  <li>
+  The <code>quit</code> command terminates the shell.&nbsp;
+  </li>
+  <li>
+  The <code>jobs</code> command lists all background jobs.&nbsp;
+  </li>
+  <li>
+  The <code>bg &lt;job&gt;</code> command restarts <code>&lt;job&gt;</code> by
+  sending it a SIGCONT signal, and then runs it in the background.&nbsp; The
+  <code>&lt;job&gt;</code> argument can be either a PID or a JID.&nbsp;
+  </li>
+  <li>
+  The <code>fg &lt;job&gt;</code> command restarts <code>&lt;job&gt;</code> by
+  sending it a SIGCONT signal, and then runs it in the foreground.&nbsp;
+  </li>
+  </ul>
+  </li><li>
+  <code>tsh</code> should reap all of its zombie children.&nbsp; If any
+  job terminates because it receives a signal that it didn’t catch,
+  then <code>tsh</code> should recognize this event and print a message
+  with the job’s PID and a description of the offending
+  signal.&nbsp;
+  </li>
+  </ul>
+  <p></p>
+  <h2>Checking Your Work</h2>
+  <p>
+  We have provided some tools to help you check your work.&nbsp;
+  </p>
+  <p>
+  <b>Reference solution.</b>&nbsp; The Linux executable <code>tshref</code> is
+  the reference solution for the shell.&nbsp; Run this program to resolve
+  any questions you have about how your shell should behave.&nbsp; <font color="red"><b><i>Your
+  shell should emit output that is identical to the reference
+  solution</i></b></font>
+  (modulo PIDs, of course, which change from run to run).&nbsp;
+  Past experience indicates that obtaining exact correspondence is
+  difficult.&nbsp;  In some cases one might argue that different output
+  would be equally “good;” even so, for the sake of the
+  TA’s sanity, you will receive full
+  credit only for matching the reference solution.
+  </p>
+  <p>
+  <b>Shell driver.</b>&nbsp; The <code>sdriver.pl</code> program (a perl script)
+  executes a shell as a child process, sends it commands and signals as
+  directed by a <i>trace file</i>, and captures and displays the output from
+  the shell.&nbsp;
+  </p><pre>    unix&gt; ./sdriver.pl -h
+      Usage: sdriver.pl [-hv] -t &lt;trace&gt; -s &lt;shellprog&gt; -a &lt;args&gt;
+      Options:
+        -h            Print this message
+        -v            Be more verbose
+        -t &lt;trace&gt;    Trace file
+        -s &lt;shell&gt;    Shell program to test
+        -a &lt;args&gt;     Shell arguments
+        -g            Generate output for autograder
+  </pre>
+  <p></p>
+  <p>
+  We have also provided 16 trace files (<code>trace{01-16}.txt</code>) that you
+  will use in conjunction with the shell driver to test the correctness of your
+  shell.&nbsp; The lower-numbered trace files do very simple tests, and the
+  higher-numbered tests do more complicated tests.&nbsp;
+  </p>
+  <p>
+  You can run the shell driver on your shell using trace file
+  <code>trace01.txt</code> (for instance) by typing:&nbsp;
+  </p><pre>    unix&gt; <code>./sdriver.pl -t trace01.txt -s ./tsh -a "-p"</code>
+  </pre>
+  or
+  <pre>    unix&gt; <code>make test01</code>
+  </pre>
+  (The <code>-a "-p"</code> argument tells your shell not to emit a
+  prompt.)&nbsp; And, if you want to run all of the tests on your shell,
+  you can type:&nbsp;
+  <pre>    unix&gt; <code>make tests</code>
+  </pre>
+  Similarly, you can run the trace driver on the reference shell by typing:&nbsp;
+  <pre>    unix&gt; <code>./sdriver.pl -t trace01.txt -s ./tshref -a "-p"</code>
+  </pre>
+  or
+  <pre>    unix&gt; <code>make rtest01</code>
+  </pre>
+  And you can run all the tests on the reference shell by typing
+  <pre>    unix&gt; <code>make rtests</code>
+  </pre>
+  For your reference, <code>tshref.out</code> gives the output of the
+  reference solution on all 16 traces.&nbsp; This might be more convenient
+  for you than running the shell driver.&nbsp;
+  <p></p>
+  <p>
+  The neat thing about the trace files is that they generate the same
+  output you would have gotten had you run your shell interactively
+  (except for an initial comment that identifies the trace).&nbsp; For
+  example:&nbsp;
+  </p><pre>    unix&gt; make test15
+      ./sdriver.pl -t trace15.txt -s ./tsh -a "-p"
+      #
+      # trace15.txt - Putting it all together
+      #
+      tsh&gt; ./bogus
+      ./bogus: Command not found.
+      tsh&gt; ./myspin 10
+      Job (9721) terminated by signal: Interrupt
+      tsh&gt; ./myspin 3 &amp;
+      [1] (9723) ./myspin 3 &amp;
+      tsh&gt; ./myspin 4 &amp;
+      [2] (9725) ./myspin 4 &amp;
+      tsh&gt; jobs
+      [1] (9723) Running    ./myspin 3 &amp;
+      [2] (9725) Running    ./myspin 4 &amp;
+      tsh&gt; fg %1
+      Job [1] (9723) stopped by signal: Stopped
+      tsh&gt; jobs
+      [1] (9723) Stopped    ./myspin 3 &amp;
+      [2] (9725) Running    ./myspin 4 &amp;
+      tsh&gt; bg %3
+      %3: No such job
+      tsh&gt; bg %1
+      [1] (9723) ./myspin 3 &amp;
+      tsh&gt; jobs
+      [1] (9723) Running    ./myspin 3 &amp;
+      [2] (9725) Running    ./myspin 4 &amp;
+      tsh&gt; fg %1
+      tsh&gt; quit
+      unix&gt;
+  </pre>
+  
+  
+  <h2>Note</h2>
+  <p>
+  In the shell assignment as defined by the authors, you were not required
+  to change ownership of the terminal.&nbsp; That meant that your processes
+  wouldn’t
+  be able to read from the terminal.&nbsp;  You were to leave the terminal
+  attached to the shell, which would catch SIGINT and SIGSTP, and forward
+  them to the process group it is <i>pretending</i> is in the
+  foreground.&nbsp;
+  We’re requiring you to fix that this year.&nbsp; There’s one
+  test case (<code>myhello.c</code>) that accepts user input; it’s
+  worth 10 pts.&nbsp; Your shell should
+  correctly handle this test case.&nbsp;
+  </p>
+  
+  <h2>Hints</h2>
+  <p>
+  </p><ul>
+  <li>
+  Read Chapter 8 (Exceptional Control Flow) in the textbook carefully.&nbsp;
+  </li>
+  <li>
+  Use the trace files to guide the development of your shell.&nbsp;
+  Starting with <code>trace01.txt</code>, make sure that your shell
+  produces the <i>identical</i> output as the reference shell.&nbsp; Then
+  move on to trace file <code>trace02.txt</code>, and so on.&nbsp;
+  </li>
+  
+  <li>
+  The <code>psignal</code>, <code>waitpid</code>, <code>kill</code>,
+  <code>fork</code>, <code>execve</code>, <code>setpgid</code>,
+  <code>sigprocmask</code>, and <code>tcsetpgrp</code> functions will come
+  in very handy.&nbsp; The
+  WUNTRACED and WNOHANG options to <code>waitpid</code> will also be
+  useful.&nbsp;
+  </li>
+  <li>
+  Programs such as <code>more</code>, <code>less</code>, <code>vi</code>,
+  and <code>emacs</code> do strange things with the terminal
+  settings.&nbsp; Don’t run these programs from your shell.&nbsp;
+  Stick with simple text-based programs such <code>/bin/ls</code>,
+  <code>/bin/ps</code>, and <code>/bin/echo</code>.&nbsp; If you run one
+  of the others by accident, you <i>may</i> be able to get back to normal by
+  typing <code>stty reset</code>.&nbsp; In the worst case, you may need to
+  terminate your terminal session and log back in again.&nbsp;
+  </li>
+  <li>
+  When you run your shell from the standard Unix shell, your shell is
+  running in the foreground process group.&nbsp; If your shell then
+  creates a child process, by default that child will also be a member of
+  the foreground process group.&nbsp; Since typing
+  <i>ctrl</i>-<code>C</code> sends a
+  SIGINT to every process in the foreground group, typing
+  <i>ctrl</i>-<code>C</code>
+  will send a SIGINT to your shell, as well as to every process that your
+  shell created, which obviously isn’t correct.&nbsp;
+  <br>
+  Here is the solution:&nbsp; After the <code>fork</code>, but before the
+  <code>execve</code>, the child process should call <code>setpgid(0,
+  0)</code>, which puts the child in a new process group whose group ID is
+  identical to the child’s PID.&nbsp;
+  If the child is to run in the foreground, it should then call
+  <code>tcsetpgrp(0, my_pid)</code>.&nbsp;
+  This ensures that
+  when you type <i>ctrl</i>-<code>C</code>, the resulting SIGINT goes
+  either to your shell or to the appropriate foreground job (more
+  precisely, the process group that contains the foreground job), as
+  appropriate.&nbsp;
+  Note that you will need to call <code>tcsetpgrp</code> again after
+  reaping a foreground job.&nbsp;  If you read the man page, you'll notice
+  that a process gets a SIGTTOU signal whenever it calls <code>tcsetpgrp</code> 
+  from the background; to avoid this, you will need to call
+  <code>signal</code> once in your shell, during startup, to explicitly
+  ignore SIGTTOU.&nbsp; 
+  </li>
+  <li>
+  You may notice that <code>tcsetpgrp</code> fails when testing your shell
+  with the given test script.&nbsp; This is a known problem with the
+  script.&nbsp; It should not, however, prevent you from correctly running
+  any of the <code>trace*.txt</code> files, as they take no user input.&nbsp;
+  Your shell must, however, display correct behavior on programs, both
+  foreground and background, that do take user input—including correct
+  handling of <i>ctrl</i>-<code>C</code>, <i>ctrl</i>-<code>Y</code>, and
+  <i>ctrl</i>-<code>Z</code> events entered at the keyboard.&nbsp; We will
+  be testing these behaviors manually.&nbsp; If you are not sure what the
+  “correct” behavior ought to be, try the same operations in
+  your favorite Linux shell.&nbsp;
+  </li>
+  </ul>
+  
+  <h2>Evaluation</h2>
+  <p>
+  Your score will be computed out of a maximum of 100 points based on the
+  following distribution:&nbsp;
+  </p><ul>
+  <li>[90] Correctness:&nbsp; 16 trace files at 5 points each, <code>myhello.c</code> for 10 points. </li>
+  <li>[10] Style points.&nbsp; We expect you to have good comments (5 pts)
+  and to check the return value of every system call (5 pts).</li>
+  </ul>
+  Your solution shell will be tested for correctness on a CSUG Linux
+  machine (likely cycle1), using the same shell driver and trace files
+  that were included in your lab directory.&nbsp; Your shell should
+  produce <b>identical</b> output on these traces as the reference shell,
+  with only two exceptions:&nbsp;
+  <ul>
+  <li>The PIDs can (and will) be different.</li>
+  <li>
+  The output of the <code>/bin/ps</code> commands in
+  <code>trace11.txt</code>, <code>trace12.txt</code>, and
+  <code>trace13.txt</code> will be different from run to run.&nbsp;
+  However, the running states of any <code>mysplit</code> processes in the
+  output of the <code>/bin/ps</code> command should be identical.&nbsp;
+  </li>
+  </ul>
+  We reserve the right to run additional checks if we suspect that your program
+  generates the “right” output for the wrong reason.&nbsp;
+  <p></p>
+
+  <h2>“Trivia” Assignment</h2>
+  <p>Trivia assignment is available on Blackboard as a test. Below is the exact same five questions, just for reference purposes.</p>
+  <ol>
+  <li>
+  Are you working alone or in a team of two?&nbsp; If the latter, who is
+  your partner?&nbsp;
+  </li>
+  <li>
+  What output do you get when you run the “trace driver” on
+  the “reference shell”?&nbsp; Use <code>trace02.txt</code> as
+  the trace file.&nbsp;
+  </li>
+  <li>
+  What is the difference between the <code>fork</code> and <code>execve</code>
+  system calls?&nbsp;
+  </li>
+  <li>
+  How are command line arguments retrieved in a program (in C)?&nbsp; Name the
+  funtion(s) or variable(s) used.&nbsp;
+  </li>
+  <li>
+  Explain the meaning and purpose of the WNOHANG and WUNTRACED options to the
+  <code>waitpid</code> system call.&nbsp;
+  </li>
+  </ol>
+  
+  <h2>Turn In Instructions</h2>
+  <p>
+  The main assignment will be submitted using the script
+  /u/cs252/bin/TURN_IN.&nbsp; From the directory you wish to turn in type:&nbsp;
+  </p><pre>    /u/cs252/bin/TURN_IN .</pre>
+  It will ask you for your partner's netid. If you are working alone, simply press enter. Otherwise, put your partner's netid, and press enter. <b>Note that there's a dot in that command!</b>
+  Watch the <a href="http://my.rochester.edu/">Blackboard</a> discussion forum
+  for details, and for any clarifications or revisions to the assignment.&nbsp;
+  <p></p>
+  <p>
+  Before running the <code>TURN_IN</code> script, be sure that you have
+  </p><ul>
+  <li>
+  Included your full name and email address in the comment at the top of
+  tsh.c.&nbsp;
+  </li>
+  <li>
+  Removed any extraneous print statements.&nbsp;
+  </li>
+  <li>
+  Included any appropriate commentary on your code in a separate README file or
+  as C comments in tch.c.&nbsp;
+  </li>
+  </ul>
+  <hr>
+
+</div>  <!-- end of home_container -->
+
+<div class="footer">
+University of Rochester, Department of Computer Science
+</div>
+
+</div>  <!-- end of content_container (defined in header.php) -->
+</div>  <!-- end main_container (defined in header.php) -->
+
+
+</body>
+</html>
+
