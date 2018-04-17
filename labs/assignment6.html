@@ -1,0 +1,471 @@
+<!doctype html>
+<html>
+<head>
+<title>Computer Organization (CSC 252) Spring 2018</title>
+
+<link href="https://fonts.googleapis.com/css?family=Lato:300,700|Roboto+Condensed" rel="stylesheet">
+<link rel="stylesheet" type="text/css" href="../css/main.css">
+
+</head>
+<body>
+
+<div class="main_container">
+
+<div class="topbar">
+  <div class="topbar_left"><a href="../index.html">CSC 252</a></div>
+  <div class="topbar_left"><a href="../index.html">Home</a></div>
+  <div class="topbar_left"><a href="../schedule.html">Schedule</a></div>
+  <div class="topbar_left"><a href="../syllabus.html">Syllabus</a></div>
+  <div class="topbar_left"><a href="https://learn.rochester.edu/">Blackboard</a></div>
+</div>
+
+
+<div class="content_container">
+<div class="home_container">
+
+  <div class="sub_title">Assignment 6:&nbsp; Dynamic Storage Allocator</div>
+
+<h2>Introduction</h2>
+<p>
+In this lab you will be writing a dynamic storage allocator for C
+programs, i.e., your own version of the <i>malloc</i>, <i>free</i>, and
+<i>realloc</i> routines.&nbsp; You are encouraged to explore the design
+space creatively and implement an allocator that is correct, efficient
+and fast.&nbsp;</p>
+
+<h2>DUE DATES:</h2>
+<p> For the "trivia" assignment:&nbsp; 12:00pm, Thursday, April
+19.&nbsp;<br>
+For the main assignment:&nbsp; 11:59pm, Thursday, April 30.&nbsp;</p>
+
+<h2>Hand Out Instructions</h2>
+<p>
+Start by copying <i>/u/cs252/labs18/malloclab/malloclab-handout.tar</i> to a
+protected directory in which you plan to do your work.&nbsp; Then give
+the command:&nbsp;
+</p><pre>    tar xvf malloclab-handout.tar
+</pre>
+This will cause a bunch of files to be unpacked into the directory.&nbsp;
+The only file you will be modifying and handing in is <i>mm.c</i>.&nbsp;
+<p>
+The <i>mdriver.c</i> program is a driver program that allows you to
+evaluate the performance of your solution.&nbsp; Use the command
+<i>make</i> to generate the driver code and run it with the command
+<i>./mdriver –V</i>.&nbsp; (The <i>–V</i> flag displays
+helpful summary information.)
+</p><p>
+Looking at the file <i>mm.c</i> you’ll notice a C structure
+<i>team</i> into which you should insert the requested identifying
+information about the one or two individuals comprising your programming
+team.&nbsp;
+<b>Do this right away so you don’t forget.</b>&nbsp;
+</p>
+
+</p><h2>How to Work on the Lab</h2>
+<p>
+Your dynamic storage allocator will consist of the following four
+functions, which are declared in <i>mm.h</i> and defined in
+<i>mm.c</i>.&nbsp;
+</p><ul>
+<li><code>int   mm_init(void);</code>
+</li><li><code>void *mm_malloc(size_t size);</code>
+</li><li><code>void  mm_free(void *ptr);</code>
+</li><li><code>void *mm_realloc(void *ptr, size_t size);</code>
+</li></ul>
+
+<p>
+The <i>mm.c</i> file we have given you implements the simplest but
+still functionally correct malloc package that we could think
+of.&nbsp; Using this as a starting place, modify these functions (and
+possibly define other private <i>static</i> functions), so that they
+obey the following semantics:&nbsp;
+
+</p><ul>
+<p>
+</p><li> <i>mm_init</i>:&nbsp; Before calling <i>mm_malloc</i>,
+    <i>mm_realloc</i>, or <i>mm_free</i>, the application program (i.e.,
+    the trace-driven driver program that you will use to evaluate your
+    implementation) calls <i>mm_init</i> to perform any necessary
+    initializations, such as allocating the initial heap area.&nbsp; The
+    return value should be &#8722;1 if there was a problem in performing the
+    initialization, 0 otherwise.&nbsp;
+<p>
+
+</p></li><li> <i>mm_malloc</i>:&nbsp; The <i>mm_malloc</i> routine returns a
+    pointer to an allocated block payload of at least <i>size</i>
+    bytes.&nbsp; The entire allocated block should lie within the heap
+    region and should not overlap with any other allocated chunk.&nbsp;
+    <p>
+    We will compare your implementation to the version of <i>malloc</i>
+    supplied in the standard C library (<i>libc</i>).&nbsp; Since the
+    <i>libc malloc</i> always returns payload pointers that are aligned
+    to an 8 byte boundary, your malloc implementation should do
+    likewise.&nbsp;
+</p><p>
+
+</p></li><li> <i>mm_free</i>:&nbsp; The <i>mm_free</i> routine frees the block
+    pointed to by <i>ptr</i>.&nbsp; It returns nothing.&nbsp; This
+    routine is only guaranteed to work when the passed pointer
+    (<i>ptr</i>) was returned by an earlier call to <i>mm_malloc</i> or
+    <i>mm_realloc</i> and has not yet been freed.&nbsp;
+<p>
+
+</p></li><li> <i>mm_realloc</i>:&nbsp; The <i>mm_realloc</i> routine returns a
+    pointer to an allocated region of at least <i>size</i> bytes with
+    the following constraints:&nbsp;
+
+    <ul>
+    <p>
+    </p><li> if <i>ptr</i> is NULL, the call is equivalent to
+    <i>mm_malloc(size)</i>;
+    <p>
+    </p></li><li> if <i>size</i> is equal to zero, the call is equivalent to
+    <i>mm_free(ptr)</i>;
+    <p>
+    </p></li><li> if <i>ptr</i> is not NULL, it must have been returned by an
+    earlier call to <i>mm_malloc</i> or <i>mm_realloc</i>.&nbsp; The
+    call to <i>mm_realloc</i> changes the size of the memory block
+    pointed to by <i>ptr</i> (the <i>old block</i>) to <i>size</i> bytes
+    and returns the address of the new block.&nbsp; Notice that the
+    address of the new block might be the same as the old block, or it
+    might be different, depending on your implementation, the amount of
+    internal fragmentation in the old block, and the size of the
+    <i>realloc</i> request.&nbsp;
+    <p>
+    The contents of the new block are the same as those of the old
+    block, up to the minimum of the old and new sizes.&nbsp; Everything
+    else is uninitialized.&nbsp; For example, if the old block is 8
+    bytes and the new block is 12 bytes, then the first 8 bytes of the
+    new block are identical to the first 8 bytes of the old block and
+    the last 4 bytes are uninitialized (garbage).&nbsp; Similarly, if
+    the old block is 8 bytes and the new block is 4 bytes, then the
+    contents of the new block are identical to the first 4 bytes of the
+    old block.&nbsp;
+    </p></li></ul>
+
+</li></ul>
+
+These semantics match the the semantics of the corresponding <i>libc</i>
+<i>malloc</i>, <i>realloc</i>, and <i>free</i> routines.&nbsp; Type
+<i>man malloc</i> to the shell for complete documentation.&nbsp;
+
+<h2>Heap Consistency Checker</h2><p>
+</p><p>
+Dynamic memory allocators are notoriously tricky beasts to program
+correctly and efficiently.&nbsp; They are difficult to program correctly
+because they involve a lot of untyped pointer manipulation.&nbsp; You
+will find it very helpful to write a heap checker that scans the heap
+and checks it for consistency.&nbsp;
+</p><p>
+Some examples of what a heap checker might check are:&nbsp;
+</p><ul>
+<li> Is every block in the free list marked as free?&nbsp;
+</li><li> Are there any contiguous free blocks that somehow escaped
+     coalescing?&nbsp;
+</li><li> Is every free block actually in the free list?&nbsp;
+</li><li> Do the pointers in the free list point to valid free blocks?&nbsp;
+</li><li> Do any allocated blocks overlap?&nbsp;
+</li><li> Do the pointers in a heap block point to valid heap addresses?&nbsp;
+</li></ul>
+<p>
+Your heap checker will consist of the function <i>int mm_check(void)</i>
+in <i>mm.c</i>.&nbsp; It will check any invariants or consistency
+conditions you consider prudent.&nbsp; It returns a nonzero value if and
+only if your heap is consistent.&nbsp; You are not limited to the listed
+suggestions nor are you required to check all of them.&nbsp; You are
+encouraged to print out error messages when <i>mm_check</i> fails.&nbsp;
+</p><p>
+This consistency checker is for your own debugging during
+development.&nbsp; When you submit <i>mm.c</i>, make sure to remove any
+calls to <i>mm_check</i> as they will slow down your throughput.&nbsp;
+Style points will be given for your <i>mm_check</i> function.&nbsp; Make
+sure to put in comments and document what you are checking.&nbsp;
+
+</p><h2>Support Routines</h2>
+<p>
+The <i>memlib.c</i> package simulates the OS portion of the memory
+system for your dynamic memory allocator.&nbsp; You can invoke the
+following functions in <i>memlib.c</i>:&nbsp;
+
+</p><ul>
+
+<li> <i>void *mem_sbrk(int incr)</i>:&nbsp;
+    Expands the heap by <i>incr</i> bytes, where <i>incr</i> is a
+    positive non-zero integer and returns a generic pointer to the first
+    byte of the newly allocated heap area.&nbsp; The semantics are
+    based on the Unix <i>sbrk</i> function, with two notable exceptions:&nbsp;
+    <ul style="font-weight:bold">
+    <li>the built-in <i>sbrk</i> returns <code>-1</code> on an allocation
+    error, <i>mem_sbrk</i> returns <code>NULL</code></li>
+    <li><i>mem_sbrk</i> accepts only a positive non-zero integer
+    argument</li>
+    </ul>
+
+</li><li> <i>void *mem_heap_lo(void)</i>:&nbsp;
+    Returns a generic pointer to the first byte in the heap.&nbsp;
+
+</li><li> <i>void *mem_heap_hi(void)</i>:&nbsp;
+    Returns a generic pointer to the last byte in the heap.&nbsp;
+
+</li><li> <i>size_t mem_heapsize(void)</i>:&nbsp;
+    Returns the current size of the heap in bytes.&nbsp;
+
+</li><li> <i>size_t mem_pagesize(void)</i>:&nbsp;
+    Returns the system’s page size in bytes (4K on Linux
+    systems).&nbsp;
+
+</li></ul>
+
+<h2>The Trace-driven Driver Program</h2>
+<p>
+The driver program <i>mdriver.c</i> in the <i>malloclab-handout.tar</i>
+distribution tests your <i>mm.c</i> package for correctness, space
+utilization, and throughput.&nbsp; The driver program is controlled by a
+set of <b>trace files</b>.&nbsp; Some small traces are included in the
+<i>malloclab-handout.tar</i> distribution.&nbsp; The larger traces that we will
+test your file with are located at <i>/u/cs252/labs18/malloclab/malloctraces/</i>.&nbsp;
+These larger traces are automatically run if you execute <i>mdriver</i>
+without a <i>-f</i> argument.&nbsp; Each trace file contains a sequence of
+allocate, reallocate, and free directions that instruct the driver to call
+your <i>mm_malloc</i>, <i>mm_realloc</i>, and <i> mm_free</i> routines in
+some sequence.&nbsp;
+</p><p>
+The driver <i>mdriver.c</i> accepts the following command line
+arguments:&nbsp;
+
+</p><ul>
+
+<li> <i>–t tracedir</i>:&nbsp;
+    Look for the default trace files in directory <i>tracedir</i>
+    instead of the default directory defined in <i>config.h</i>.&nbsp;
+
+</li><li> <i>–f tracefile</i>:&nbsp;
+    Use one particular <i>tracefile</i> for testing instead of the
+    default set of tracefiles.&nbsp;
+
+</li><li> <i>–h</i>:&nbsp;
+    Print a summary of the command line arguments.&nbsp;
+
+</li><li> <i>–l</i>:&nbsp;
+    Run and measure <i>libc</i> malloc in addition to the
+    student’s malloc package.&nbsp;
+
+</li><li> <i>–v</i>:&nbsp;
+    Verbose output.&nbsp; Print a performance breakdown for each
+    tracefile in a compact table.&nbsp;
+
+</li><li> <i>–V</i>:&nbsp;
+    More verbose output.&nbsp; Prints additional diagnostic information
+    as each trace file is processed.&nbsp; Useful during debugging for
+    determining which trace file is causing your malloc package to
+    fail.&nbsp;
+
+</li></ul>
+
+<h2>Programming Rules</h2>
+
+<ul>
+
+<li> You should not change any of the interfaces in <i>mm.c</i>.&nbsp;
+
+</li><li> You should not invoke any memory-management related library
+    calls or system calls.&nbsp; This excludes the use of <i>malloc</i>,
+    <i> calloc</i>, <i>free</i>, <i>realloc</i>, <i>sbrk</i>, <i>brk</i>
+    or any variants of these calls in your code.&nbsp;
+
+</li><li> You are not allowed to define any global or <i>static</i> compound
+    data structures such as arrays, structs, trees, or lists in your
+    <i>mm.c</i> program.&nbsp; However, you <b>are</b> allowed to
+    declare global scalar variables such as integers, floats, and
+    pointers in <i>mm.c</i>.&nbsp;
+
+</li><li> For consistency with the <i>libc</i> <i>malloc</i> package, which
+    returns blocks aligned on 8-byte boundaries, your allocator must
+    always return pointers that are aligned to 8-byte boundaries.&nbsp;
+    The driver will enforce this requirement for you.&nbsp;
+
+</li></ul>
+
+<h2>Evaluation</h2>
+
+You will receive <b>zero points</b> if you break any of the rules or
+your code is buggy and crashes the driver.&nbsp; Otherwise, your grade
+will be calculated as follows:&nbsp;
+
+<ul>
+<p>
+
+</p><li> <b>Correctness (20 points).</b>&nbsp; You will receive full points if
+    your solution passes the correctness tests performed by the driver
+    program.&nbsp; You will receive partial credit for each correct
+    trace.&nbsp;
+<p>
+
+</p></li><li> <b>Performance (35 points).</b>&nbsp;  Two performance metrics will be
+    used to evaluate your solution:&nbsp;
+    <p>
+    </p><ul>
+    <li> Space utilization:&nbsp; The peak ratio between the
+        aggregate amount of memory used by the driver (i.e., allocated
+        via <i>mm_malloc</i> or <i>mm_realloc</i> but not yet freed via
+        <i>mm_free</i>) and the size of the heap used by your
+        allocator.&nbsp; The optimal (unachievable) ratio would
+        be&nbsp;1.&nbsp; You should find good policies to minimize
+        fragmentation in order to make this ratio as close as possible to
+        the optimal.&nbsp;
+    </li><li>Throughput:&nbsp; The average number of operations completed
+        per second.&nbsp;
+    </li></ul>
+    <p>
+    The driver program summarizes the performance of your allocator by
+    computing a <i>performance index</i>, <i>P</i>, which is a weighted sum
+    of the space utilization and throughput
+    </p><p>
+    <i>P = wU + (1&#8722;w) min (1, T / T<sub>libc</sub>)</i>
+    </p><p>
+    where <i>U</i> is your space utilization, <i>T</i> is your throughput,
+    and <i>T<sub>libc</sub></i> is the estimated throughput of <i>libc</i>
+    malloc on your system on the default traces.&nbsp; (The value for
+    <i>T<sub>libc</sub></i> is a constant in the driver (4000 Kops/s) that
+    the TA established when he configured the release).&nbsp;  The
+    performance index favors space utilization over throughput, with a
+    default of <i>w = 0.6</i>.&nbsp;
+    </p><p>
+    Observing that both memory and CPU cycles are expensive system
+    resources, we adopt this formula to encourage balanced optimization of
+    both memory utilization and throughput.&nbsp; Ideally, the performance
+    index will reach <i>P = w + (1&#8722;w) = 1</i> or <i>100%</i>.&nbsp;
+    Since each metric will contribute at most <i>w</i> and <i>1&#8722;w</i>
+    to the performance index, respectively, you should not go to extremes to
+    optimize either the memory utilization or the throughput only.&nbsp; To
+    receive a good score, you must achieve a balance between utilization and
+    throughput.&nbsp;
+    </p><p>
+    </p></li><li> <b>Style (10 points).</b>&nbsp;
+        <p>
+        </p><ul>
+        <li>
+            Your code should be decomposed into functions and use as few
+            global variables as possible.&nbsp;
+        </li><li>
+            Your code should begin with a header comment that describes the
+            structure of your free and allocated blocks, the organization of
+            the free list, and how your allocator manipulates the free
+            list.&nbsp;
+        </li><li>
+            Each subroutine should have a header comment that describes
+            what it does and how it does it.&nbsp;
+        </li><li>
+            Your heap consistency checker <i>mm_check</i> should be
+            thorough and well documented.&nbsp;
+        </li></ul>
+        <p>
+        You will be awarded 5 points for a good heap consistency checker and
+        5 points for good program structure and comments.&nbsp;
+    </p></li></ul>
+
+<h2>Hints</h2>
+<p>
+</p><ul>
+<li> <b>Use the <i>mdriver</i> <i>–f</i> option.</b>&nbsp;  During
+    initial development, using tiny trace files will simplify debugging
+    and testing.&nbsp; We have included two such trace files
+    (<i>short{1,2}-bal.rep</i>) that you can use for initial debugging.&nbsp;
+    Other trace files are located in /u/cs252/labs18/malloclab/malloctraces/.&nbsp;
+<p>
+</p></li><li> <b>Use the <i>mdriver</i> <i>–v</i> and <i>–V</i>
+    options.</b>&nbsp; The <i>–v</i> option will give you a detailed
+    summary for each trace file.&nbsp; The <i>–V</i> will also
+    indicate when each trace file is read, which will help you isolate
+    errors.&nbsp;
+<p>
+</p></li><li> <b>Compile with <i>gcc –g</i> and use a debugger.</b>&nbsp;
+    A debugger will help you isolate and identify out of bounds memory
+    references.&nbsp;
+<p>
+</p></li><li> <b>Understand every line of the malloc implementation in the
+    textbook.</b>&nbsp;  The textbook has a detailed example of a simple
+    allocator based on an implicit free list.&nbsp; Use this is a point
+    of departure.&nbsp; Don’t start working on your allocator
+    until you understand everything about the simple implicit list
+    allocator.&nbsp;
+<p>
+</p></li><li> <b>Encapsulate your pointer arithmetic in C preprocessor
+    macros or gcc in-line functions.</b>&nbsp;  Pointer arithmetic in memory
+    managers is confusing and error-prone because of all the casting that is
+    necessary.&nbsp; You can reduce the complexity significantly by writing
+    macros for your pointer operations.&nbsp; See the text for
+    examples.&nbsp;
+<p>
+</p></li><li> <b>Do your implementation in stages.</b>&nbsp;  The first 9 traces
+    contain requests to <i>malloc</i> and <i>free</i>.&nbsp; The last 2
+    traces contain requests for <i>realloc</i>, <i>malloc</i>, and
+    <i>free</i>.&nbsp; We recommend that you start by getting your
+    <i>malloc</i> and <i>free</i> routines working correctly and efficiently
+    on the first 9 traces.&nbsp; Only then should you turn your attention to
+    the <i>realloc</i> implementation.&nbsp; For starters, build
+    <i>realloc</i> on top of your existing <i>malloc</i> and <i>free</i>
+    implementations.&nbsp; But to get really good performance, you will need
+    to build a stand-alone <i> realloc</i>.&nbsp;
+<p>
+</p></li><li> <b>Use a profiler.</b>&nbsp; You may find the <i>gprof</i> tool helpful
+    for optimizing performance.&nbsp;
+<p>
+</p></li><li> <b>Start early!</b>&nbsp;  It is possible to write an efficient malloc
+    package with a few pages of code.&nbsp; However, we can guarantee that it
+    will be some of the most difficult and sophisticated code you have
+    written so far in your career.&nbsp; So start early, and good luck!&nbsp;
+</li></ul>
+
+<h2>“Trivia” Assignment</h2>
+  <p>Trivia assignment is available on Blackboard as a test. Below is the exact same five questions, just for reference purposes.</p>
+<ol>
+<li>
+Are you working alone or in a team of two?&nbsp;
+If the latter, who is your partner?&nbsp;
+</li><li>
+After you have inputed your team information, what output do you get
+when you run the following command?&nbsp;
+<pre>    mdriver -V -f short2-bal.rep
+</pre>
+</li><li>
+What is the value of <i>ALIGNMENT</i> defined in <i>mm.c</i>?&nbsp; How many
+words is this?&nbsp;
+</li><li>
+What does the <i>mem_sbrk</i> function do?&nbsp; How does it indicate an allocation
+error?&nbsp;
+</li><li>
+How do the default implementations of <i>mm_malloc</i>, <i>mm_free</i>,
+and <i>mm_realloc</i> work?&nbsp; What is obviously bad about these implementations?&nbsp;
+</li></ol>
+
+<h2>Turn In Instructions</h2>
+<p>
+The “trivia” assignment will be submitted via email.&nbsp; The main assignment
+will be submitted using the script /u/cs252/bin/TURN_IN.&nbsp;
+</p><pre>    <code>/u/cs252/bin/TURN_IN .</code></pre>
+
+<p>
+Before running the TURN_IN script, be sure that you have
+</p><ul>
+<li> included your full name and email address in the comment at the top
+of <i>mm.c</i>
+</li><li> removed any extraneous print statements
+</li><li> included any appropriate commentary on your code in a separate
+README file or as C comments in <i>mm.c</i>
+</li></ul>
+
+</div>  <!-- end of home_container -->
+
+<div class="footer">
+University of Rochester, Department of Computer Science
+</div>
+
+
+</div>  <!-- end of content_container (defined in header.php) -->
+</div>  <!-- end main_container (defined in header.php) -->
+
+
+</body>
+</html>
+
