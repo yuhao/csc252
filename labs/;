@@ -1,0 +1,384 @@
+<!doctype html>
+<html>
+<head>
+<title>Computer Organization (CSC 252) Spring 2020</title>
+
+<link href="https://fonts.googleapis.com/css?family=Lato:300,700|Roboto+Condensed" rel="stylesheet">
+<link rel="stylesheet" type="text/css" href="../css/main.css">
+
+</head>
+<body>
+
+<div class="main_container">
+
+<div class="topbar">
+  <div class="topbar_left"><a href="../index.html">CSC 252</a></div>
+  <div class="topbar_left"><a href="../index.html">Home</a></div>
+  <div class="topbar_left"><a href="../schedule.html">Schedule</a></div>
+  <div class="topbar_left"><a href="../syllabus.html">Syllabus</a></div>
+  <div class="topbar_left"><a href="https://learn.rochester.edu/">Blackboard</a></div>
+</div>
+
+
+<div class="content_container">
+<div class="home_container">
+
+  <div class="sub_title">Assignment 1: Datalab</div>
+
+  <h2><p>
+  <font color="red">If you want to use slip days you have to tell us before the deadline (by emailing Sudhanshu Gupta and Shuang Zhai). We won't by default assume slip days for late submissions.</font><br><br>
+  <font color="red">If you code does not compile on the CSUG machine, you get a 0.</font>
+  </p></h2>
+
+  <h2>Introduction</h2>
+  <p>
+   The purpose of this assignment is to become more familiar with
+   representing and manipulating data as bits.&nbsp;  You'll do
+   this by solving a series of programming puzzles.&nbsp;
+   Many of these puzzles are quite artificial, but you'll find
+   yourself thinking much more about bits in working your way through
+   them.&nbsp;
+  </p>
+  <p>
+   You can choose to work individually or in pairs (2 people) on this assignment.&nbsp; In case of the latter, only one submission is needed.
+  </p>
+
+  <p>
+  </p><h2>Due Dates</h2>
+  11:59 pm, Friday, Jan. 31.&nbsp;
+  </p>
+
+  <h2>Getting Started</h2>
+  <p>
+   We are providing you with a skeleton code file and testing
+   utilities.&nbsp;  To obtain these, type the command:
+   <p><pre>cp /u/cs252/labs20/datalab/datalab-handout.tar .</pre>which copies the files to your current directory on the CSUG machine.</p>
+   Then type the command:
+   </p><pre>tar xvf datalab-handout.tar</pre>
+   to the shell.&nbsp;  This will cause twelve files to be created in
+   your directory:
+   <ul>
+    <li>README
+    </li><li>Makefile
+    </li><li>bits.h
+    </li><li>btest.h
+    </li><li>bits.c
+    </li><li>btest.c
+    </li><li>decl.c
+    </li><li>fshow.c
+    </li><li>ishow.c
+    </li><li>tests.c
+    </li><li>driver.pl
+    </li><li>dlc
+   </li></ul>
+  <p></p>
+  <p>
+
+<table><tbody><tr><td>
+   The only file you will be modifying is
+   <code>bits.c</code>.&nbsp;  All other files should be left as-is.&nbsp;
+   The file <code>btest.c</code> allows you to evaluate the functional
+   correctness of your code.&nbsp;  The file <code>README</code> contains
+   additional documentation about <code>btest</code>.&nbsp;  Use the command:
+   <pre>    make btest </pre>
+    to generate the test code and run it with the command:
+   <pre>    ./btest </pre>
+  <p></p>
+  <p>
+   Looking at the file <code>bits.c</code> you'll notice a C stucture
+   <code>team</code> into which you should insert information
+   identifying yourself.&nbsp;  Do this right away so you don't
+   forget.&nbsp;
+  </p>
+  <p>
+   The <code>bits.c</code> file also contains a skeleton for each of
+   the 15 programming puzzles.&nbsp;  Your assignment is to complete each
+   function skeleton using only <i>straightline</i> code (i.e., no
+   loops or conditionals) and a limited number of C arithmetic and
+   logical operators.&nbsp;  Specifically, you are allowed to use
+   <i>only</i> the following eight operators:
+   </p><pre> ! ~ &amp; ^ | + &lt;&lt; &gt;&gt; </pre>
+   A few of the functions further restrict
+   this list.&nbsp;  See the comments in <code>bits.c</code> for detailed
+   rules and a discussion of the desired coding style.&nbsp;  Note also that
+   casts and arrays are not allowed, that you may only declare
+   variables of type <code>int</code>, and that you may only
+   initialize variables to values in the range <code>0L - 255L</code>.&nbsp;
+  <p></p>
+  <h2>Grading</h2>
+  <p>
+  Your code will be compiled with <code>gcc</code> and run and tested on
+  one of the CSUG Linux machines.&nbsp;  Your score will be computed out
+  of a maximum of 78 points based on the following distribution:
+  </p><dl>
+   <dt>(43) Correctness
+   </dt><dt>(30) Performance
+    </dt><dd> based on the number of operators used in each function
+   </dd><dt>(5) Style
+    </dt><dd> based on the TAs' subjective evaluation of the quality of your
+     solutions and your comments
+  </dd></dl>
+  <p></p>
+  <p>
+   The 15 puzzles you must solve have been given a difficulty rating
+   between 1 and 4, such that their weighted sum totals to 43.&nbsp;  We
+   will evaluate your functions using the test arguments in
+   <code>btest.c</code>.&nbsp; You will get full credit for a puzzle if
+   it passes all of the tests performed by <code>btest.c</code>, half
+   credit if it fails one test, and no credit otherwise.&nbsp;
+  </p>
+  <p>
+   Regarding performance, our main concern at this point in the course
+   is that you get the right answer.&nbsp;  However, we want to instill
+   in you a sense of keeping things as short and simple as you
+   can.&nbsp; Furthermore, some of the puzzles can be solved by brute
+   force, but we want you to be more clever.&nbsp;  Thus, for each
+   function we've established a maximum number of operators that
+   you are allowed to use for each function.&nbsp;  This limit is very
+   generous and is designed only to catch egregiously inefficient
+   solutions.&nbsp;  You will receive two points for each function that
+   satisfies the operator limit.&nbsp;
+  </p>
+  <p>
+   Finally, we've reserved 5 points for a subjective evaluation
+   of the style of your solutions and your commenting.&nbsp;  Your
+   solutions should be as clean and straightforward as possible.&nbsp;
+   Your comments should be informative, but they need not be
+   extensive.&nbsp;
+  </p>
+  <h2>Project Details</h2>
+  <h3>Part I:  Bit Manipulations</h3>
+  <p>
+  <table width="90%" cellspacing="2" cellpadding="2">
+     <colgroup><col width="30%">
+         <col width="40%">
+             <col width="15%">
+                 <col width="15%">
+   </colgroup><tbody><tr>
+    <th align="left">Function</th>
+    <th align="left">Description</th>
+    <th align="center">Rating</th>
+    <th align="center">Max Ops</th>
+   </tr>
+   <tr>
+    <td valign="top"><code>bitXor(x,y)</code></td>
+    <td valign="top"><code>(x^y)</code> using only <code> ~ </code> and
+       <code> &amp; </code></td>
+    <td valign="top" align="center">1</td>
+    <td valign="top" align="center">14</td>
+   </tr>
+   <tr>
+    <td valign="top"><code>oddBits()</code></td>
+    <td valign="top">Return word with all odd-numbered bits set to 1.</td>
+    <td valign="top" align="center">2</td>
+    <td valign="top" align="center">8</td>
+   </tr>
+   <tr>
+    <td valign="top"><code>reverseBytes(x)</code></td>
+    <td valign="top">Reverse the bytes of <code>x</code>.</td>
+    <td valign="top" align="center">3</td>
+    <td valign="top" align="center">25</td>
+   </tr>
+   <tr>
+    <td valign="top"><code>rotateRight(x,n)</code></td>
+    <td valign="top">Rotate <code>x</code> to the right by <code>n</code>.</td>
+    <td valign="top" align="center">3</td>
+    <td valign="top" align="center">25</td>
+   </tr>
+   <tr>
+    <td valign="top"><code>bitCount(x)</code></td>
+    <td valign="top">Returns count of number of 1's in word.</td>
+    <td valign="top" align="center">4</td>
+    <td valign="top" align="center">40</td>
+   </tr>
+  </tbody></table>
+  </p>
+  <p>
+   The table above describes a set of functions that manipulate and test sets of bits.&nbsp;
+   The "rating"
+   field gives the difficulty rating (and thus the number of points) for
+   the puzzle, and the "max ops" field gives the maximum
+   number of operators you are allowed to use to implement each
+   function.&nbsp;
+  </p>
+
+  <h3>Part II:  Two's Complement Arithmetic</h3>
+  <p>
+  <table width="90%" cellspacing="2" cellpadding="2">
+     <colgroup><col width="30%">
+         <col width="40%">
+             <col width="15%">
+                 <col width="15%">
+   </colgroup><tbody><tr>
+    <th align="left">Function</th>
+    <th align="left">Description</th>
+    <th align="center">Rating</th>
+    <th align="center">Max Ops</th>
+   </tr>
+   <tr>
+    <td valign="top"><code>tmax()</code></td>
+    <td valign="top">Return maximum two's complement integer.</td>
+    <td valign="top" align="center">1</td>
+    <td valign="top" align="center">4</td>
+   </tr>
+   <tr>
+    <td valign="top"><code>addOK(x,y)</code></td>
+    <td valign="top">Determine if can compute <code>x+y</code> without overflow.</td>
+    <td valign="top" align="center">3</td>
+    <td valign="top" align="center">20</td>
+   </tr>
+   <tr>
+    <td valign="top"><code>rempwr2(x,n)</code></td>
+    <td valign="top">Compute <code>x%(2<sup>n</sup>)</code>, for <code>0 &lt;= n &lt;= 30</code>.</td>
+    <td valign="top" align="center">3</td>
+    <td valign="top" align="center">20</td>
+   </tr>
+   <tr>
+    <td valign="top"><code>satMul2(x)</code></td>
+    <td valign="top">Multiplies by 2, saturating to Tmin or Tmax if overflow.</td>
+    <td valign="top" align="center">3</td>
+    <td valign="top" align="center">20</td>
+   </tr>
+   <tr>
+    <td valign="top"><code>isGreater(x,y)</code></td>
+    <td valign="top">If <code>x&gt;y</code>  then return 1, else return 0.</td>
+    <td valign="top" align="center">3</td>
+    <td valign="top" align="center">24</td>
+   </tr>
+   <tr>
+    <td valign="top"><code>multFiveEighths(x)</code></td>
+    <td valign="top">Multiplies by 5/8 rounding toward 0.</td>
+    <td valign="top" align="center">3</td>
+    <td valign="top" align="center">12</td>
+   </tr>
+   <tr>
+    <td valign="top"><code>isNonZero(x)</code></td>
+    <td valign="top">Check whether <code>x</code> is nonzero using the legal operators except <code>!</code>.</td>
+    <td valign="top" align="center">4</td>
+    <td valign="top" align="center">10</td>
+   </tr>
+  </tbody></table>
+  </p>
+  <p>
+   The table above describes a set of functions that make use of the
+   two's complement representation of integers.&nbsp;  The
+   "rating" and "max ops" fields have the same
+   meaning as in Part I.&nbsp;
+  </p>
+
+  <h3>Part III:  Floating Point Operations</h3>
+  <p>
+  <table width="90%" cellspacing="2" cellpadding="2">
+     <colgroup><col width="30%">
+         <col width="40%">
+             <col width="15%">
+                 <col width="15%">
+   </colgroup><tbody><tr>
+    <th align="left">Function</th>
+    <th align="left">Description</th>
+    <th align="center">Rating</th>
+    <th align="center">Max Ops</th>
+   </tr>
+   <tr>
+    <td valign="top"><code>float_abs(uf)</code></td>
+    <td valign="top">Return bit-level equivalent of absolute value of <code>f</code>.</td>
+    <td valign="top" align="center">2</td>
+    <td valign="top" align="center">10</td>
+   </tr>
+   <tr>
+    <td valign="top"><code>float_f2i(uf)</code></td>
+    <td valign="top">Return bit-level equivalent of expression (int) <code>f</code>.</td>
+    <td valign="top" align="center">4</td>
+    <td valign="top" align="center">30</td>
+   </tr>
+   <tr>
+    <td valign="top"><code>float_half(uf)</code></td>
+    <td valign="top">Return bit-level equivalent of expression <code>0.5*f</code>.</td>
+    <td valign="top" align="center">4</td>
+    <td valign="top" align="center">30</td>
+   </tr>
+  </tbody></table>
+  </p>
+  <p>
+   The table above describes a set of functions that operate on the bit-level
+   representations of (single-precision) floating-point numbers.&nbsp;  The
+   "rating" and "max ops" fields have the same
+   meaning as in Part I.&nbsp;
+  </p>
+  <p>
+   In this section, you are allowed to use standard control structures
+   (conditionals, loops, and you may use both <code>int</code> and
+   <code>unsigned</code> data types, including arbitrary unsigned and integer
+   constants.&nbsp; You may <i>not</i> use any unions, structs, or
+   arrays.&nbsp; Most significantly, you may not use any floating point
+   data types, operations, or contants.&nbsp;
+  </p>
+  <p>
+   You can use <code>fshow</code> to see what an arbitrary pattern represents as a
+   floating-point number, e.g.
+   </p><pre>   		./fshow 2080374784 </pre>
+  <p></p>
+
+  <h2>Advice</h2>
+  <p>
+   You are welcome to do your code development using any system or compiler
+   you choose.&nbsp;  Just make sure that the version you turn in compiles and
+   runs correctly on the CSUG Linux machines.&nbsp;  If it doesn't
+   compile, we can't grade it.&nbsp;
+  </p>
+  <p>
+   The <code>dlc</code> program, a modified version of an ANSI C compiler,
+   will be used to check your programs for compliance with the coding style
+   rules.&nbsp;  You can also use it to measure the operator counts of your
+   functions.&nbsp;  You can run these tests by executing the command:
+   </p><pre>       ./dlc -e bits.c </pre>
+   The program runs only on the CSUG Linux machines.&nbsp;
+  <p></p>
+  <p>
+   Check the file <code>README</code> for documentation on running the
+   <code>btest</code> program.&nbsp;  You'll find it helpful to
+   work through the functions one at a time, testing each one as you
+   go.&nbsp;  You can use the <code>-f</code> flag to instruct
+   <code>btest</code> to test only a single function, e.g.,
+   </p><pre>      ./btest -f bitXor </pre>
+  <p></p>
+  <p>
+   The <code>driver.pl</code> is a program that uses both <code>btest</code> and <code>dlc</code>.
+   It takes no arguments.
+   </p><pre>      ./driver.pl </pre>
+  <p></p>
+
+  <h2>What/how to turn in</h2>
+  <p>
+  First make sure you are in the directory that contains <code>bits.c</code>. The main assignment can be submitted using the command:
+   <pre>    /u/cs252/bin/TURN_IN . </pre>
+  <b>Note that there's a dot in that command!&nbsp;</b>
+  Watch Blackboard for any clarifications or revisions
+  to the assignment.&nbsp;
+  </p><p>
+  The <code>TURN_IN</code> script will ask you for your partner's ID. If you work by yourself, simply press enter; otherwise type his/her netid. Before running the <code>TURN_IN</code> script, be sure that you have
+  </p><ul>
+  <li>included your full name(s) and email address(es) at
+  the top of <code>bits.c</code>
+  </li><li>removed any extraneous print statements
+  </li><li>included any appropriate commentary on your code as C comments in
+  <code>bits.c</code> (there is no separate <code>README</code> file for
+  this assignment)
+  </li></ul>
+
+</div>  <!-- end of home_container -->
+
+<hr size="1">
+
+<div class="footer">
+University of Rochester, Department of Computer Science
+</div>
+
+
+</div>  <!-- end of content_container (defined in header.php) -->
+</div>  <!-- end main_container (defined in header.php) -->
+
+
+</body>
+</html>
+
