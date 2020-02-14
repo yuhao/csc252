@@ -1,0 +1,122 @@
+<!doctype html>
+<html>
+<head>
+<title>Computer Organization (CSC 252) Spring 2018</title>
+
+<link href="https://fonts.googleapis.com/css?family=Lato:300,700|Roboto+Condensed" rel="stylesheet">
+<link rel="stylesheet" type="text/css" href="../css/main.css">
+
+</head>
+<body>
+
+<div class="main_container">
+
+<div class="topbar">
+  <div class="topbar_left"><a href="../index.html">CSC 252</a></div>
+  <div class="topbar_left"><a href="../index.html">Home</a></div>
+  <div class="topbar_left"><a href="../schedule.html">Schedule</a></div>
+  <div class="topbar_left"><a href="../syllabus.html">Syllabus</a></div>
+  <div class="topbar_left"><a href="https://learn.rochester.edu/">Blackboard</a></div>
+</div>
+
+
+<div class="content_container">
+<div class="home_container">
+
+  <h2>Level 2: Nile (15 pts)</h2>
+  <p>
+
+    A much more sophisticated form of buffer attack involves supplying a string
+    that encodes actual machine instructions.&nbsp; The exploit string then overwrites
+    the return pointer with the starting address of these instructions.&nbsp; When the
+    calling function (in this case <code>getbuf</code>) executes its ret
+    instruction, the program will start executing the instructions on the stack
+    rather than returning.&nbsp; With this form of attack, you can get the program to
+    do almost anything.&nbsp; The code you place on the stack is called the exploit
+    code.&nbsp; This style of attack is tricky, though, because you must get machine
+    code onto the stack and set the return pointer to the start of this code.&nbsp;
+  </p>
+  <p>
+    Within the file <code>bufbomb</code> there is a function
+    <code>bang</code> having the following C code:
+  </p>
+  <pre>    int global_value = 0;
+
+    void bang(int val)
+    {
+        if (global_value == cookie) {
+            printf("Bang!: You set global_value to 0x%x\n", global_value);
+            validate(2);
+        } else
+            printf("Misfire: global_value = 0x%x\n", global_value);
+        exit(0);
+    }
+  </pre>
+  <p>
+  Similar to Level 0 and 1, your task is to get <code>bufbomb</code> to
+  execute the code for <code>bang</code> rather than returning to
+  <code>test</code>&nbsp; Before this, however, you must set global
+  variable <code>global_value</code> to your team’s cookie.&nbsp; Your exploit code
+  should set <code>global_value</code>, push the address of bang on the stack,
+  and then execute a ret instruction to cause a jump to the code for bang.&nbsp;
+  </p><p>
+  <b>Some Advice</b>:
+</p><ul>
+  <li>
+    You can use GDB to get the information you need to construct your exploit
+    string.&nbsp; Set a breakpoint within getbuf and run to this breakpoint.&nbsp;
+    Determine parameters such as the address of <code>global_value</code> and the
+    location of the buffer.&nbsp;
+  </li>
+  <li>
+    Determining the byte encoding of instruction sequences by hand is tedious
+    and prone to errors.&nbsp; You can let tools do all of the work by writing an
+    assembly code file containing the instructions and data you want to put on
+    the stack.&nbsp; Assemble this file with GCC and disassemble it with
+    <code>objdump</code>.&nbsp; You
+    should be able to get the exact byte sequence that you will type at the
+    prompt.&nbsp;
+  </li>
+  <li>
+    Keep in mind that your exploit string depends on your machine, your compiler,
+    and even your team’s cookie.&nbsp; Do all of your work on a CSUG machine, and make
+    sure you include the proper team name on the command line to
+    <code>bufbomb</code>.&nbsp;
+  </li>
+<!--
+  <li>
+    Our solution requires 16 bytes of exploit code.&nbsp; Fortunately, there is
+    sufficient space on the stack, because we can overwrite the stored value of
+    <code>%ebp</code>.&nbsp; This stack corruption will not cause any
+    problems, since bang causes the program to exit directly.&nbsp;
+  </li>
+-->
+  <li>
+    Watch your use of address modes when writing assembly code.&nbsp; Note that
+    <code>movl $0x4, %eax</code> moves the value <code>0x00000004</code> into
+    register <code>%eax</code>; whereas <code>movl 0x4, %eax</code> moves the
+    value at memory location <code>0x00000004</code> into <code>%eax</code>.&nbsp;
+    Since that memory location is usually undefined, the second instruction will
+    cause a segfault!&nbsp;
+  </li>
+  <li>
+    Do not attempt to use either a jmp or a call instruction to jump to the code
+    for bang.&nbsp; These instructions uses PC-relative addressing, which is very
+    tricky to set up correctly.&nbsp; Instead, push an address on the stack and use the
+    <code>ret</code> instruction.&nbsp;
+  </li>
+</ul>
+<hr>
+</div>  <!-- end of home_container -->
+
+<div class="footer">
+University of Rochester, Department of Computer Science
+</div>
+
+
+</div>  <!-- end of content_container (defined in header.php) -->
+</div>  <!-- end main_container (defined in header.php) -->
+
+
+</body>
+</html>

@@ -1,0 +1,109 @@
+<!doctype html>
+<html>
+<head>
+<title>Computer Organization (CSC 252) Spring 2018</title>
+
+<link href="https://fonts.googleapis.com/css?family=Lato:300,700|Roboto+Condensed" rel="stylesheet">
+<link rel="stylesheet" type="text/css" href="../css/main.css">
+
+</head>
+<body>
+
+<div class="main_container">
+
+<div class="topbar">
+  <div class="topbar_left"><a href="../index.html">CSC 252</a></div>
+  <div class="topbar_left"><a href="../index.html">Home</a></div>
+  <div class="topbar_left"><a href="../schedule.html">Schedule</a></div>
+  <div class="topbar_left"><a href="../syllabus.html">Syllabus</a></div>
+  <div class="topbar_left"><a href="https://learn.rochester.edu/">Blackboard</a></div>
+</div>
+
+
+<div class="content_container">
+<div class="home_container">
+
+<h2>Level 3:&nbsp; Sumerian (20 pts)</h2>
+<p>
+  Our preceding attacks have all caused the program to jump to the code for
+  some other function, which then causes the program to exit.&nbsp; As a result, it
+  was acceptable to use exploit strings that corrupt the stack, overwriting
+  the saved value of register <code>%ebp</code> and the return pointer.&nbsp;
+</p>
+<p>
+  The most sophisticated form of buffer overflow attack causes the program to
+  execute some exploit code that patches up the stack and makes the program
+  return to the original calling function (test in this case).&nbsp; The calling
+  function is oblivious to the attack.&nbsp; This style of attack is tricky, though,
+  since you must:&nbsp;
+  </p><ol>
+    <li>get machine code onto the stack,</li>
+    <li>set the return pointer to the start of this code, and</li>
+    <li>undo the corruptions made to the stack state.</li>
+  </ol>
+<p></p>
+<p>
+  Your job for this level is to supply an exploit string that will cause
+  <code>getbuf</code> to return your cookie back to <code>test</code>, rather
+  than the value 1.&nbsp; You can see in the code for test that this will cause the
+  program to go “Boom!”&nbsp; Your exploit code should set your cookie as the return
+  value, restore any corrupted state, push the correct return location on the
+  stack, and execute a <code>ret</code> instruction to really return to test.&nbsp;
+</p>
+<p>
+  <b>Some Advice</b>:&nbsp;
+  </p><ul>
+    <li>
+      In order to overwrite the return pointer, you must also overwrite the
+      saved value of <code>%ebp</code>.&nbsp; However, it is important that this value
+      is correctly restored before you return to test.&nbsp; You can do this by either
+      <ol>
+        <li>
+          making sure that your exploit string contains the correct value of the
+          saved <code>%ebp</code> in the correct position, so that it never gets
+          corrupted, <b>or</b>
+        </li>
+        <li>restore the correct value as part of your exploit code.</li>
+      </ol>
+      You’ll see that the code for test has some explicit tests to check for a
+      corrupted stack.&nbsp;
+    </li>
+    <li>
+      You can use <code>gdb</code> to get the information you need to construct
+      your exploit string.&nbsp; Set a breakpoint within <code>getbuf</code> and run to
+      this breakpoint.&nbsp; Determine parameters such as the saved return address and
+      the saved value of <code>%ebp</code>.&nbsp;
+    </li>
+    <li>
+      Again, let tools such as <code>gcc</code> and <code>objdump</code> do all
+      of the work of generating a byte encoding of the instructions.&nbsp;
+    </li>
+    <li>
+      Keep in mind that your exploit string depends on your machine, your
+      compiler, and even your team’s cookie.&nbsp; Do all of your work on a CSUG
+      machine, and make sure you include the proper team name on the command line
+      to <code>bufbomb</code>.&nbsp;
+    </li>
+  </ul>
+<p></p>
+<p>
+  Once you complete this level, pause to reflect on what you have accomplished.&nbsp;
+  You caused a program to execute machine code of your own design.&nbsp; You have done
+  so in a sufficiently stealthy way that the program did not realize that
+  anything was amiss.&nbsp;
+</p>
+  <hr>
+</div>  <!-- end of home_container -->
+
+<div class="footer">
+University of Rochester, Department of Computer Science
+</div>
+
+
+</div>  <!-- end of content_container (defined in header.php) -->
+</div>  <!-- end main_container (defined in header.php) -->
+
+
+</body>
+</html>
+

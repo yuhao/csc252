@@ -1,0 +1,346 @@
+<!doctype html>
+<html>
+<head>
+<title>Computer Organization (CSC 252) Spring 2020</title>
+
+<link href="https://fonts.googleapis.com/css?family=Lato:300,700|Roboto+Condensed" rel="stylesheet">
+<link rel="stylesheet" type="text/css" href="../css/main.css">
+
+</head>
+<body>
+
+<div class="main_container">
+
+<div class="topbar">
+  <div class="topbar_left"><a href="../index.html">CSC 252</a></div>
+  <div class="topbar_left"><a href="../index.html">Home</a></div>
+  <div class="topbar_left"><a href="../schedule.html">Schedule</a></div>
+  <div class="topbar_left"><a href="../syllabus.html">Syllabus</a></div>
+  <div class="topbar_left"><a href="https://learn.rochester.edu/">Blackboard</a></div>
+</div>
+
+
+<div class="content_container">
+<div class="home_container">
+
+  <div class="sub_title">Assignment 3: The Buffer Bomb</div>
+
+  <h2><p>
+  <font color="red">If you want to use slip days you have to tell us before the deadline (by emailing <a href="mailto:sgupta45@ur.rochester.edu">Sudhanshu Gupta</a> and <a href="mailto:szhai2@cs.rochester.edu">Shuang Zhai</a>). We won't by default assume slip days for late submissions.</font><br><br>
+  <font color="red">No email submissions will be accepted.</font>
+  </p></h2>
+
+  <h2>Introduction</h2>
+  <p>
+  This assignment helps you develop a detailed understanding of the
+  calling stack organization on an x86 processor.&nbsp; It involves applying
+  a series of <i>buffer overflow attacks</i> on an executable file.&nbsp;
+  </p><p>
+  <b>Note:</b>&nbsp; In this lab, you will gain first-hand experience with one
+  of the methods commonly used to exploit security weaknesses in
+  operating systems and network servers.&nbsp; Our purpose is to help you
+  learn about the run-time operation of programs and to understand the
+  nature of this form of security weakness so that you can avoid it
+  when you write system code.&nbsp; We <i>vigorously condemn</i> the use of
+  these or any other form of attack to gain unauthorized access to any
+  system resources.&nbsp; There are criminal statutes governing such
+  activities.&nbsp;
+  
+  <p>
+  </p><h2>Due Dates</h2>
+  <p>
+  For the main assignment: 11:59pm, Friday, Feb 28.&nbsp;
+  </p>
+
+  </p><h2>Location of the Bomb</h2>
+  <p>
+  To obtain a bomb, point your browser at
+  <a href="http://cycle3.csug.rochester.edu:18213/">
+  http://cycle3.csug.rochester.edu:18213/</a>.&nbsp;
+  (This will work only for browsers running on a csug machine.)&nbsp;
+  You’ll end up downloading a <code>tar</code> file which, when unpacked,
+  will give you a set of three programs:&nbsp;
+  </p><dl>
+  <dt><code>makecookie</code> </dt><dd>Generates a “cookie” based
+      on your team name.&nbsp;
+  </dd><dt><code>bufbomb</code> </dt><dd>The code you will attack.&nbsp;
+  </dd><dt><code>hex2raw</code> </dt><dd>A utility to help convert between string
+      formats.&nbsp;
+  </dd></dl>
+  All of these programs are compiled to run on the csug machines.&nbsp;
+  
+  <h2>Team Name and Cookie</h2>
+  <p>
+  You should create a team name for the one or two people in your group
+  of the following form:&nbsp;
+  </p><dl>
+  <dt> “name” </dt><dd>where name is your username, if you are
+      working alone, or
+  </dd><dt> “name1” </dt><dd>where name1 is the username of the
+      first team member. <font color="red">Email the grad TAs the team members.</font>&nbsp;
+  </dd></dl>
+  
+  <!--You should choose a consistent ordering of the IDs in the second form
+  of team name.&nbsp; Teams “bob+jane” and “jane+bob” are
+  considered distinct.&nbsp; <b>You must follow this scheme for generating
+  your team name (with the plus sign and no spaces!)&nbsp; Our grading program will only give credit to those
+  people whose username can be extracted from the team names.</b>-->
+  <p>
+  A <i>cookie</i> is a string of eight hexadecimal digits that is (with high
+  probability) unique to your team.&nbsp; You can generate your cookie with
+  the <code>makecookie</code> program giving your name as the
+  argument.&nbsp; For example:&nbsp;
+  </p><pre>  unix&gt; <i>makecookie bob</i>
+    0x39297273
+  </pre>
+  In three of your four buffer attacks, your objective will be to make
+  your cookie show up in places where it ordinarily would not.&nbsp;
+  
+  <h2>The <code>bufbomb</code> Program</h2>
+  <p>
+  The <code>bufbomb</code> program reads a string from standard input with a
+  function <code>getbuf</code> having the following C code:&nbsp;
+  </p><pre>  int getbuf()
+  {
+    char buf[NORMAL_BUFFER_SIZE];
+    Gets(buf);
+    return 1;
+  }
+  </pre>
+  The function <code>Gets</code> is similar to the standard library function
+  <code>gets</code>.&nbsp; It reads a string from standard input (terminated by
+  ‘\n’ or end-of-file) and stores it (along with a null
+  terminator) at the specified destination.&nbsp; In this code, the
+  destination is an array <code>buf</code> having sufficient space for 32
+  characters.&nbsp;
+  <p>
+  Neither <code>Gets</code> nor <code>gets</code> has any way to
+  determine whether there is enough space at the destination to store the
+  entire string.&nbsp; Instead, they simply copy the entire string, possibly
+  overrunning the bounds of the storage allocated at the destination.&nbsp;
+  </p><p>
+  If the string typed by the user to <code>getbuf</code> is no more than 31
+  characters long, it is clear that <code>getbuf</code> will return 1, as shown
+  by the following execution example:&nbsp;
+  </p><pre>  unix&gt; <i>bufbomb -u bovik</i>
+    Type string:&nbsp; <i>howdy doody</i>
+    Dud: getbuf returned 0x1
+  </pre>
+  If we type a longer string, typically an error occurs:
+  <pre>  unix&gt; <i>bufbomb -u bovik</i>
+    Type string: <i>This string is too long</i>
+    Ouch!: You caused a segmentation fault!
+  </pre>
+  As the error message indicates, overrunning the buffer typically
+  causes the program state to be corrupted, leading to a memory access
+  error.&nbsp; Your task is to be more clever with the strings you feed
+  <code>bufbomb</code> so that it does more interesting things.&nbsp; These are
+  called <i>exploit</i> strings.&nbsp;
+  <p>
+  Note:&nbsp; This version of the lab has been specially modified to defeat the
+  stack randomization techniques used by newer versions of Linux.&nbsp; It
+  works by using <code>mmap()</code> and a bit of in-line assembly code to
+  move the stack pointed at by <code>%esp</code> to an otherwise unused part
+  of your address space.&nbsp;  You may need to use <code>gdb</code> to
+  figure out where that is.&nbsp;
+  </p><p>
+  <code>Bufbomb</code> takes several command line arguments:&nbsp;
+  </p><dl>
+  <dt>–u <b>TEAM</b> </dt><dd>Operate the bomb for the indicated team.&nbsp;
+      You should always provide this argument for several reasons:&nbsp;
+  <ul>
+  <li> It is required to log your successful attacks.&nbsp;
+  </li><li> <code>Bufbomb</code> determines the cookie you will be using based
+      on your team name, just as does the program <code>makecookie</code>.&nbsp;
+  </li><li> We have built features into <code>bufbomb</code> so that some of
+      the key stack addresses you will need to use depend on your
+      team’s cookie.&nbsp;
+  </li></ul>
+  </dd><dt> –h </dt><dd>Print list of possible command line arguments
+  </dd><dt> –n </dt><dd>Operate in “Nitro” mode, as is used in
+      Level 4 below.&nbsp;
+  </dd><dt> –s </dt><dd>Submit your solution exploit string to the grading server.&nbsp;
+  </dd></dl>
+  Your exploit strings will typically contain byte values that do not
+  correspond to the ASCII values for printing characters.&nbsp; The program
+  <code>hex2raw</code> can help you generate these <i>raw</i>
+  strings.&nbsp;
+  It takes as input a <i>hex-formatted</i> string.&nbsp; In this format, each
+  byte value is represented by two hex digits.&nbsp; For example, the string
+  “012345” could be entered in hex format as “30 31 32
+  33 34 35” since the ASCII code for decimal digit 0 is 0x30 and so
+  forth.&nbsp;
+  <p>
+  The hex characters you pass <code>hex2raw</code> should be separated by
+  whitespace (blanks or newlines).&nbsp; I recommend separating different
+  parts of your exploit string with newlines while you're working on
+  it.&nbsp; <code>hex2raw</code> also supports C-style block comments, so you can
+  mark off sections of your exploit string.&nbsp; For example:
+  </p><pre>bf 66 7b 32 78 /* mov    $0x78327b66,%edi */
+  </pre>
+  Be sure to leave space around both the starting and ending comment strings (/*, */)
+  so they will be properly ignored.&nbsp;
+  <p>
+  If you place a hex-formatted exploit string in the file
+  <i>exploit.txt</i>, you can apply the raw string to <code>bufbomb</code>
+  in at least two different ways:&nbsp;
+  </p><ol>
+  <li> You can set up a series of pipes to pass the string through
+      <code>hex2raw</code>.&nbsp;
+  <pre>  unix&gt; <i>cat exploit.txt</i> | <i>./hex2raw</i> | <i>./bufbomb -u bovik</i>
+  </pre>
+  </li><li> You can store the raw string in a file and use I/O redirection to
+      supply it to <code>bufbomb</code>:&nbsp;
+  <pre>  unix&gt; <i>./hex2raw &lt; exploit.txt &gt; exploit-raw.txt</i>
+    unix&gt; <i>./bufbomb -u bovik &lt; exploit-raw.txt</i>
+  </pre>
+  </li></ol>
+  This second approach can also be used when running <code>bufbomb</code>
+  from within <code>gdb</code>:&nbsp;
+  <pre>  unix&gt; <i>gdb bufbomb</i>
+    (gdb) <i>run -u bovik &lt; exploit-raw.txt</i>
+  </pre>
+  One important point:&nbsp; your exploit string must not contain byte value
+  <i>0x0A</i> at any intermediate position, since this is the ASCII code
+  for newline (‘\n’).&nbsp; When <code>Gets</code> encounters this
+  byte, it will assume you intended to terminate the string.&nbsp;
+  <p>
+  When you have correctly solved one of the levels, say level 0:
+  </p><pre>    ../hex2raw &lt; smoke-bovik.txt | ../bufbomb -u bovik 
+      Userid: bovik
+      Cookie: 0x1005b2b7
+      Type string:Smoke!: You called smoke()
+      VALID
+      NICE JOB!
+  </pre>
+  then you can submit your solution to the grading server using the <code>-s</code> option:
+  <pre>    ./hex2raw &lt; smoke-bovik.txt | ./bufbomb -u bovik -s
+      Userid: bovik
+      Cookie: 0x1005b2b7
+      Type string:Smoke!: You called smoke()
+      VALID
+      Sent exploit string to server to be validated.
+      NICE JOB!
+  </pre>
+  The server will test your exploit string to make sure it really works, and
+  it will update the Buffer Lab scoreboard page indicating that your userid
+  (listed by your cookie for anonimity) has completed this level.&nbsp;
+  <p>
+  You can view the scoreboard by pointing your browser at <a href="http://cycle3.csug.rochester.edu:18213/scoreboard">http://cycle3.csug.rochester.edu:18213/scoreboard</a>
+  </p><p>
+  Unlike the bomb lab, there is no penalty for making mistakes in this
+  lab.&nbsp; Feel free to fire away at <code>bufbomb</code> with any string you
+  like.&nbsp;
+  
+  </p><h2>Levels</h2>
+  Levels may be done in any order.&nbsp;
+  <ul>
+  <li><a href="level0.html">Level 0</a> (10 pts)
+  </li><li><a href="level1.html">Level 1</a> (10 pts)
+  </li><li><a href="level2.html">Level 2</a> (15 pts)
+  </li><li><a href="level3.html">Level 3</a> (20 pts)
+  </li><li><a href="level4.html">Level 4</a> (10 pts, extra credits)
+  </li></ul>
+  
+  <h2>Logistics</h2>
+  <p>
+  Hand-in occurs automatically whenever you correctly solve a level <i>and</i> use the <code>-s</code> option.&nbsp;
+  Upon receiving your solution, the server will validate your string and
+  update the Buffer Lab scoreboard Web page, which you can view by pointing
+  your Web browser at <a href="http://cycle3.csug.rochester.edu:18213/scoreboard">http://cycle3.csug.rochester.edu:18213/scoreboard</a>.&nbsp; You
+  should be sure to check this page after your submission to make
+  sure your string has been validated.&nbsp; (If you really solved the level, your string
+  <i>should</i> be valid.)&nbsp;
+  </p><p>
+  Note that each level is graded individually.&nbsp; You do not need to do
+  them in the specified order, but you will get credit only for the
+  levels for which the server receives a valid message.&nbsp;
+  </p><p>
+  Have fun!
+  
+  <h2>Generating Byte Codes</h2>
+  <p>
+    Using <code>gcc</code> as an assembler and <code>objdump</code> as a
+    disassembler makes it convenient to generate the byte codes for instruction
+    sequences.&nbsp; For example, suppose we write a file <i>example.s</i> containing the
+    following assembly code:&nbsp;
+  </p>
+  <pre>  # Example of hand-generated assembly code
+          pushl $0x89abcdef       # Push value onto stack
+          addl $17,%eax           # Add 17 to %eax
+          .align 4                # Following will be aligned on multiple of 4
+          .long    0xfedcba98     # A 4-byte constant
+          .long    0x00000000     # Padding
+  </pre>
+  <p>
+    The code can contain a mixture of instructions and data.&nbsp; Anything to the right
+    of a ‘#’ character is a comment.&nbsp; We have added an extra word of all
+    <code>0</code>s to work around a shortcoming in <code>objdump</code> to be
+    described shortly.&nbsp;
+  </p>
+  <p>
+    We can now assemble and disassemble this file:&nbsp;
+  </p>
+  <pre>    unix&gt; <i>gcc -c example.s</i>
+      unix&gt; <i>objdump -d example.o &gt; example.d</i>
+  </pre>
+  <p>
+    The generated file example.d contains the following lines
+  </p>
+  <pre>    0: 68 ef cd ab 89 push $0x89abcdef
+      5: 83 c0 11       add  $0x11,%eax
+      8: 98             cwtl              Objdump tries to interpret
+      9: ba dc fe 00 00 mov  $0xfedc,%edx these as instructions
+  </pre>
+  <p>
+    Each line shows a single instruction.&nbsp; The number on the left indicates the
+    starting address (starting with 0), while the hex digits after the ':'
+    character indicate the byte codes for the instruction.&nbsp; Thus, we can see that
+    the instruction <code>pushl $0x89ABCDEF</code> has hex-formatted byte code
+    <code>68 ef cd ab 89</code>.&nbsp;
+  </p>
+  <p>
+    Starting at address <code>8</code>, the disassembler gets confused.&nbsp; It tries
+    to interpret the bytes in the file <i>example.o</i> as instructions, but these
+    bytes actually correspond to data.&nbsp; Note, however, that if we read off the 4
+    bytes starting at address <code>8</code> we get:&nbsp; <code>98 ba dc fe</code>.&nbsp; This
+    is a byte-reversed version of the data word <code>0xFEDCBA98</code>.&nbsp; This byte
+    reversal represents the proper way to supply the bytes as a string, since a
+    little endian machine lists the least significant byte first.&nbsp; Note also that it
+    only generated two of the four bytes at the end with value <code>00</code>.&nbsp; Had
+    we not added this padding, <code>objdump</code> gets even more confused and
+    does not emit all of the bytes we want.&nbsp;
+  </p>
+  <p>
+    Finally, we can read off the byte sequence for our code (omitting the final
+    <code>0</code>s) as:&nbsp;
+  </p>
+  <pre>    <code>68 ef cd ab 89 83 c0 11 98 ba dc fe</code>
+  </pre>
+  <h2>Turn-In</h2>
+  <p>
+  There is no explicit turn-in.&nbsp; The bomb will notify us automatically
+  after you have successfully defused it with the <code>-s</code>
+  option.&nbsp; You can keep track of how you
+  (and the other groups) are doing by looking at
+  <a href="http://cycle3.csug.rochester.edu:18213/scoreboard/">http://cycle3.csug.rochester.edu:18213/scoreboard/</a>.&nbsp;
+  </p><p>
+  This web page is updated continuously to show the progress of each
+  group.&nbsp;
+  
+  </p><hr>
+
+</div>  <!-- end of home_container -->
+
+<div class="footer">
+University of Rochester, Department of Computer Science
+</div>
+
+
+</div>  <!-- end of content_container (defined in header.php) -->
+</div>  <!-- end main_container (defined in header.php) -->
+
+
+</body>
+</html>
+
