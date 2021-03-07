@@ -58,10 +58,10 @@
   <a href="http://cycle3.csug.rochester.edu:18213/">
   http://cycle3.csug.rochester.edu:18213/</a>.&nbsp;
   (This will work only for browsers running on a csug machine.)&nbsp;
-  You’ll end up downloading a <code>tar</code> file which, when unpacked,
+  You'll end up downloading a <code>tar</code> file which, when unpacked,
   will give you a set of three programs:&nbsp;
   </p><dl>
-  <dt><code>makecookie</code> </dt><dd>Generates a “cookie” based
+  <dt><code>makecookie</code> </dt><dd>Generates a "cookie" based
       on your team name.&nbsp;
   </dd><dt><code>bufbomb</code> </dt><dd>The code you will attack.&nbsp;
   </dd><dt><code>hex2raw</code> </dt><dd>A utility to help convert between string
@@ -74,9 +74,9 @@
   You should create a team name for the one or two people in your group
   of the following form:&nbsp;
   </p><dl>
-  <dt> “name” </dt><dd>where name is your username, if you are
+  <dt> name </dt><dd>where name is your username, if you are
       working alone, or
-  </dd><dt> “name1” </dt><dd>where name1 is the username of the
+  </dd><dt> name1 </dt><dd>where name1 is the username of the
       first team member. <font color="red">Email the grad TAs the team members.</font>&nbsp;
   </dd></dl>
   
@@ -109,7 +109,7 @@
   </pre>
   The function <code>Gets</code> is similar to the standard library function
   <code>gets</code>.&nbsp; It reads a string from standard input (terminated by
-  ‘\n’ or end-of-file) and stores it (along with a null
+  '\n' or end-of-file) and stores it (along with a null
   terminator) at the specified destination.&nbsp; In this code, the
   destination is an array <code>buf</code> having sufficient space for 32
   characters.&nbsp;
@@ -154,12 +154,12 @@
       on your team name, just as does the program <code>makecookie</code>.&nbsp;
   </li><li> We have built features into <code>bufbomb</code> so that some of
       the key stack addresses you will need to use depend on your
-      team’s cookie.&nbsp;
+      team's cookie.&nbsp;
   </li></ul>
-  </dd><dt> –h </dt><dd>Print list of possible command line arguments
-  </dd><dt> –n </dt><dd>Operate in “Nitro” mode, as is used in
+  </dd><dt> h </dt><dd>Print list of possible command line arguments
+  </dd><dt> n </dt><dd>Operate in Nitro mode, as is used in
       Level 4 below.&nbsp;
-  </dd><dt> –s </dt><dd>Submit your solution exploit string to the grading server.&nbsp;
+  </dd><dt> s </dt><dd>Submit your solution exploit string to the grading server.&nbsp;
   </dd></dl>
   Your exploit strings will typically contain byte values that do not
   correspond to the ASCII values for printing characters.&nbsp; The program
@@ -167,8 +167,8 @@
   strings.&nbsp;
   It takes as input a <i>hex-formatted</i> string.&nbsp; In this format, each
   byte value is represented by two hex digits.&nbsp; For example, the string
-  “012345” could be entered in hex format as “30 31 32
-  33 34 35” since the ASCII code for decimal digit 0 is 0x30 and so
+  "012345" could be entered in hex format as "30 31 32
+  33 34 35" since the ASCII code for decimal digit 0 is 0x30 and so
   forth.&nbsp;
   <p>
   The hex characters you pass <code>hex2raw</code> should be separated by
@@ -202,7 +202,7 @@
   </pre>
   One important point:&nbsp; your exploit string must not contain byte value
   <i>0x0A</i> at any intermediate position, since this is the ASCII code
-  for newline (‘\n’).&nbsp; When <code>Gets</code> encounters this
+  for newline ('\n').&nbsp; When <code>Gets</code> encounters this
   byte, it will assume you intended to terminate the string.&nbsp;
   <p>
   When you have correctly solved one of the levels, say level 0:
@@ -274,7 +274,7 @@
   </pre>
   <p>
     The code can contain a mixture of instructions and data.&nbsp; Anything to the right
-    of a ‘#’ character is a comment.&nbsp; We have added an extra word of all
+    of a '#' character is a comment.&nbsp; We have added an extra word of all
     <code>0</code>s to work around a shortcoming in <code>objdump</code> to be
     described shortly.&nbsp;
   </p>
