@@ -41,7 +41,7 @@
   <h2>Introduction</h2>
   <p>
   The purpose of this assignment is to become more familiar with the
-  concepts of process control and signaling.&nbsp; You’ll do this by
+  concepts of process control and signaling.&nbsp; You'll do this by
   writing a simple Unix shell program that supports job control.&nbsp;
   </p>
   
@@ -78,7 +78,7 @@
   it contains a functional skeleton of a simple Unix shell.&nbsp; To help
   you get started, we have already implemented the less interesting
   functions.&nbsp; Your assignment is to complete the remaining empty
-  functions.&nbsp; As a sanity check for you, we’ve listed the
+  functions.&nbsp; As a sanity check for you, we've listed the
   approximate number of lines of code for each of these functions in
   our reference solution (which includes lots of comments).&nbsp;
   </p><ul>
@@ -220,7 +220,7 @@
   <p>
   Your <code>tsh</code> shell should have the following features:&nbsp;
   </p><ul>
-  <li>The prompt should be the string “<code>tsh&gt; </code>”.</li>
+  <li>The prompt should be the string <code>tsh&gt; </code>.</li>
   <li>
   The command line typed by the user should consist of a <i>name</i> and
   zero or more arguments, all separated by one or more spaces.&nbsp; If
@@ -253,8 +253,8 @@
   Each job can be identified by either a process ID (PID) or a job ID
   (JID), which is a small positive integer assigned by
   <code>tsh</code>.&nbsp; JIDs should be denoted on the command line by
-  the prefix “%”.&nbsp; For example, “ <i>%5</i>”
-  denotes JID 5, and “<i>5</i>” denotes PID 5.&nbsp; (We have
+  the prefix %.&nbsp; For example,  <i>%5</i>
+  denotes JID 5, and <i>5</i> denotes PID 5.&nbsp; (We have
   provided you with all of the routines you need for manipulating the job
   list.)&nbsp;
   </li>
@@ -279,9 +279,9 @@
   </ul>
   </li><li>
   <code>tsh</code> should reap all of its zombie children.&nbsp; If any
-  job terminates because it receives a signal that it didn’t catch,
+  job terminates because it receives a signal that it didn't catch,
   then <code>tsh</code> should recognize this event and print a message
-  with the job’s PID and a description of the offending
+  with the job's PID and a description of the offending
   signal.&nbsp;
   </li>
   </ul>
@@ -299,8 +299,8 @@
   (modulo PIDs, of course, which change from run to run).&nbsp;
   Past experience indicates that obtaining exact correspondence is
   difficult.&nbsp;  In some cases one might argue that different output
-  would be equally “good;” even so, for the sake of the
-  TA’s sanity, you will receive full
+  would be equally good; even so, for the sake of the
+  TA's sanity, you will receive full
   credit only for matching the reference solution.
   </p>
   <p>
@@ -429,7 +429,7 @@
   <li>
   Programs such as <code>more</code>, <code>less</code>, <code>vi</code>,
   and <code>emacs</code> do strange things with the terminal
-  settings.&nbsp; Don’t run these programs from your shell.&nbsp;
+  settings.&nbsp; Don't run these programs from your shell.&nbsp;
   Stick with simple text-based programs such <code>/bin/ls</code>,
   <code>/bin/ps</code>, and <code>/bin/echo</code>.&nbsp; If you run one
   of the others by accident, you <i>may</i> be able to get back to normal by
@@ -445,12 +445,12 @@
   SIGINT to every process in the foreground group, typing
   <i>ctrl</i>-<code>C</code>
   will send a SIGINT to your shell, as well as to every process that your
-  shell created, which obviously isn’t correct.&nbsp;
+  shell created, which obviously isn't correct.&nbsp;
   <br>
   Here is the solution:&nbsp; After the <code>fork</code>, but before the
   <code>execve</code>, the child process should call <code>setpgid(0,
   0)</code>, which puts the child in a new process group whose group ID is
-  identical to the child’s PID.&nbsp;
+  identical to the child's PID.&nbsp;
   If the child is to run in the foreground, it should then call
   <code>tcsetpgrp(0, my_pid)</code>.&nbsp;
   This ensures that
@@ -471,11 +471,11 @@
   script.&nbsp; It should not, however, prevent you from correctly running
   any of the <code>trace*.txt</code> files, as they take no user input.&nbsp;
   Your shell must, however, display correct behavior on programs, both
-  foreground and background, that do take user input—including correct
+  foreground and background, that do take user input including correct
   handling of <i>ctrl</i>-<code>C</code> and
   <i>ctrl</i>-<code>Z</code> events entered at the keyboard.&nbsp; We will
   be testing these behaviors manually.&nbsp; If you are not sure what the
-  “correct” behavior ought to be, try the same operations in
+  correct behavior ought to be, try the same operations in
   your favorite Linux shell.&nbsp;
   </li>
   </ul>
@@ -505,7 +505,7 @@
   </li>
   </ul>
   We reserve the right to run additional checks if we suspect that your program
-  generates the “right” output for the wrong reason.&nbsp;
+  generates the right output for the wrong reason.&nbsp;
   <p></p>
  
   <h2>Turn In Instructions</h2>
