@@ -330,7 +330,7 @@
   <p>
    The <code>dlc</code> program, a modified version of an ANSI C compiler,
    will be used to check your programs for compliance with the coding style
-   rules.&nbsp;  You can also use it to measure the operator counts of your
+   rules.&nbsp; It will complain if you do not declare all your variables at the beginning of a function. So for the purpose of this assignment, please declare your variables at the beginning of a function to avoid <code>dlc</code> throwing errors. You can also use <code>dlc</code> to measure the operator counts of your
    functions.&nbsp;  You can run these tests by executing the command:
    </p><pre>       ./dlc -e bits.c </pre>
    The program runs only on the CSUG Linux machines.&nbsp;
