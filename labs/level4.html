@@ -1,7 +1,7 @@
 <!doctype html>
 <html>
 <head>
-<title>Computer Organization (CSC 252) Spring 2021</title>
+<title>Computer Organization (CSC 252) Spring 2023</title>
 
 <link href="https://fonts.googleapis.com/css?family=Lato:300,700|Roboto+Condensed" rel="stylesheet">
 <link rel="stylesheet" type="text/css" href="../css/main.css">
@@ -32,7 +32,7 @@
   satisfactory mastery of the material.&nbsp; You are welcome to stop right now.&nbsp;
 </p>
 <p>
-  The next level is to conquer Mesopotamia. It is for those who want to push themselves beyond our baseline
+  The next level is for those who want to push themselves beyond our baseline
   expectations for the course, and who want to face a challenge in designing
   buffer overflow attacks that arises in real life.&nbsp; This part of the assignment
   only counts 10 points, even though it requires a fair amount of work to do, so
@@ -56,15 +56,11 @@
   exploit string knowing the exact starting address of <code>buf</code> and the
   exact saved value of <code>%ebp</code>.&nbsp; If you tried to use such an exploit on
   a normal program, you would find that it works some times, but it causes
-  segmentation faults at other times.&nbsp; Hence the name
-  “dynamite”—an explosive
-  developed by Alfred Nobel that contains stabilizing elements to make it less
-  prone to unexpected explosions.&nbsp;
+  segmentation faults at other times.
 </p>
 <p>
   For this level, we have gone the opposite direction, making the stack
-  positions even less stable than they normally are.&nbsp; Hence the name
-  “nitroglycerin”—an explosive that is notoriously unstable.&nbsp;
+  positions even less stable than they normally are.
 </p>
 <p>
   When you run <code>bufbomb</code> with the command line flag
@@ -95,8 +91,7 @@
   your cookie each of these times.&nbsp;
 </p>
 <p>
-  Your task is identical to the task for the Dynamite level.&nbsp; Once again, your job
-  for this level is to supply an exploit string that will cause
+  Your task is, once again, to supply an exploit string that will cause
   <code>getbufn</code> to return your cookie back to test, rather than the value
   1.&nbsp; You can see in the code for <code>test</code> that this will cause the program to go
   “KABOOM!”&nbsp; Your exploit code should set your cookie as the return value,
